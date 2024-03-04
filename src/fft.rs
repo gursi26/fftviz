@@ -61,6 +61,7 @@ pub fn normalize_fft(mut fft: FFT, bounds: &[f32], scaling_factor: &[f32]) -> FF
     fft
 }
 
+#[allow(dead_code)]
 pub fn write_fft_to_binary_file(filepath: &PathBuf, fft: &FFT) -> io::Result<()> {
     let mut file = File::create(filepath)?;
     let encoded_data = serialize(fft).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
@@ -68,6 +69,7 @@ pub fn write_fft_to_binary_file(filepath: &PathBuf, fft: &FFT) -> io::Result<()>
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn read_fft_from_binary_file(filepath: &PathBuf) -> io::Result<FFT> {
     let mut file = File::open(filepath)?;
     let mut buffer = Vec::new();
@@ -141,16 +143,3 @@ pub fn compute_fft(audio_path: &PathBuf) -> FFT {
     }
 }
 
-pub fn compute_and_cache_fft(audio_path: &PathBuf) -> FFT {
-    let file_name = audio_path.file_stem().unwrap().to_str().unwrap();
-    let mut cache_path = audio_path.parent().unwrap().to_path_buf();
-    cache_path.push(format!(".{}.fft", file_name));
-
-    if cache_path.is_file() && !FORCE_CACHE_REFRESH {
-        let fft = read_fft_from_binary_file(&cache_path).unwrap();
-        return fft;
-    }
-    let fft = compute_fft(audio_path);
-    write_fft_to_binary_file(&cache_path, &fft).unwrap();
-    fft
-}

@@ -15,8 +15,8 @@ use std::path::PathBuf;
 
 // Constants
 const RENDERING_FPS: u32 = 60;
-const SCREEN_WIDTH: i32 = 1780;
-const SCREEN_HEIGHT: i32 = 1000;
+const SCREEN_WIDTH: i32 = 1000;
+const SCREEN_HEIGHT: i32 = 700;
 
 const FREQUENCY_RESOLUTION: u32 = 100;
 const FFT_FPS: u32 = 12;
@@ -27,8 +27,6 @@ const FFT_WINDOW: i32 =
 const BAR_INTERPOLATION_FACTOR: u32 = 2;
 const RESCALING_THRESHOLDS: &[f32] = &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
 const RESCALING_FACTOR: &[f32] = &[2.0, 1.7, 1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.7];
-const CACHE_FFT: bool = false;
-const FORCE_CACHE_REFRESH: bool = false;
 
 
 #[derive(Debug, Parser)]
@@ -42,25 +40,29 @@ struct CLIArgs {
     #[arg(long = "border-size", default_value_t = 1)]
     border_size: u32,
 
-    /// Border color for each bar
+    /// Border color for each bar (in hex)
     #[arg(long = "border-color", default_value_t = String::from("000000"))]
     border_color: String,
 
-    /// Color for each bar
+    /// Color for each bar (in hex)
     #[arg(long = "bar-color", default_value_t = String::from("FF0000"))]
     bar_color: String,
 
-    /// Set to false to disable printing currently playing song title
-    #[arg(long = "print-text", action = ArgAction::SetFalse)]
-    print_text: bool,
+    /// Whether to disable printing
+    #[arg(long = "disable-title", action = ArgAction::SetTrue)]
+    disable_title: bool,
 
-    /// Text of currently playing label
+    /// Color for currently playing text (in hex)
     #[arg(long = "text-color", default_value_t = String::from("FFFFFF"))]
     text_color: String,
 
     /// Font size of currently playing label
     #[arg(long = "font-size", default_value_t = 25)]
     font_size: u32,
+
+    // Background color (in hex)
+    #[arg(long = "background-color", default_value_t = String::from("000000"))]
+    background_color: String,
 }
 
 struct FFTArgs {
@@ -68,9 +70,10 @@ struct FFTArgs {
     border_size: i32,
     border_color: Color,
     bar_color: Color,
-    print_text: bool,
+    disable_title: bool,
     text_color: Color,
     font_size: i32,
+    background_color: Color
 }
 
 fn main() {
@@ -83,14 +86,7 @@ fn main() {
     cache_path.push(format!(".{}.fft", file_name));
 
     println!("Computing FFT...");
-    let mut fft;
-    if CACHE_FFT {
-        fft = compute_and_cache_fft(&p);
-    } else if cache_path.is_file() {
-        fft = read_fft_from_binary_file(&cache_path).unwrap();
-    } else {
-        fft = compute_fft(&p);
-    }
+    let mut fft = compute_fft(&p);
 
     fft = normalize_fft(fft, RESCALING_THRESHOLDS, RESCALING_FACTOR);
     let mut fft_vec = fft.fft;
@@ -105,7 +101,7 @@ fn main() {
     let mut fft = fft_vec.into_iter().peekable();
     let mut i = 0;
 
-    let (mut rl, thread) = raylib::init().title("fft-visualizer").build();
+    let (mut rl, thread) = raylib::init().title("fftviz").build();
     rl.set_target_fps(RENDERING_FPS);
     rl.set_window_size(SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -119,7 +115,7 @@ fn main() {
 
     while !rl.window_should_close() && fft.peek().is_some() && !rl.is_key_down(KeyboardKey::KEY_Q) {
         let mut d = rl.begin_drawing(&thread);
-        d.clear_background(Color::BLACK);
+        d.clear_background(args.background_color);
 
         if i as u32 % num_frame_gen == 0 {
             fft_chunk = fft.next().unwrap();
@@ -157,7 +153,7 @@ fn main() {
             );
         }
 
-        if args.print_text {
+        if !args.disable_title {
             d.draw_text(
                 &format!("Playing: {:?}", p.file_stem().unwrap().to_str().unwrap())[..],
                 10,

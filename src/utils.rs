@@ -11,8 +11,9 @@ pub fn cli_args_to_fft_args(cli_args: CLIArgs) -> FFTArgs {
         border_size: cli_args.border_size as i32,
         border_color: Color::from_hex(&cli_args.border_color[..]).unwrap(),
         bar_color: Color::from_hex(&cli_args.bar_color[..]).unwrap(),
-        print_text: cli_args.print_text,
+        disable_title: cli_args.disable_title,
         text_color: Color::from_hex(&cli_args.text_color[..]).unwrap(),
         font_size: cli_args.font_size as i32,
+        background_color: Color::from_hex(&cli_args.background_color[..]).unwrap()
     }
 }
