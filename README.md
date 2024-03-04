@@ -1,2 +1,2 @@
 # fft-visualizer
-A quick FFT visualizer built with Rust + Raylib
+A lightweight FFT visualizer for audio files.

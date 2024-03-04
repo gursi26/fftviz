@@ -39,7 +39,7 @@ struct CLIArgs {
     file_path: String,
 
     /// Border size for each bar
-    #[arg(long = "border-size", default_value_t = 2)]
+    #[arg(long = "border-size", default_value_t = 1)]
     border_size: u32,
 
     /// Border color for each bar
