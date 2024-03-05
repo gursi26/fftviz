@@ -21,10 +21,10 @@ pub struct FFT {
 }
 
 
-pub fn time_interpolate(v1: &Vec<f32>, v2: &Vec<f32>) -> Vec<f32> {
+pub fn time_interpolate(v1: &Vec<f32>, v2: &Vec<f32>, alpha: f32) -> Vec<f32> {
     v1.iter()
         .zip(v2.iter())
-        .map(|(x, y)| (x.clone() + y.clone()) / 2.0)
+        .map(|(x, y)| x.clone() * (1.0 - alpha) + y.clone() * alpha)
         .collect::<Vec<f32>>()
 }
 
