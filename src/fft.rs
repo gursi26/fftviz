@@ -1,4 +1,3 @@
-use crate::*;
 use bincode::{deserialize, serialize};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rodio::{source::Source, Decoder, OutputStream};
@@ -50,7 +49,8 @@ pub fn smooth_fft(mut fft: FFT, alpha: u32) -> FFT {
             *x = ((i - alpha as usize)..(i + alpha as usize))
                 .into_iter()
                 .map(|i| fft.fft[i][j])
-                .sum::<f32>() as f32 / (2.0 * alpha as f32 + 1.0)
+                .sum::<f32>() as f32
+                / (alpha as f32)
         });
         new_fft.push(new_frame);
     }
@@ -93,7 +93,14 @@ pub fn read_fft_from_binary_file(filepath: &PathBuf) -> io::Result<FFT> {
     Ok(fft)
 }
 
-pub fn compute_fft(audio_path: &PathBuf) -> FFT {
+pub fn compute_fft(
+    audio_path: &PathBuf,
+    fft_fps: u32,
+    freq_res: u32,
+    min_freq: f32,
+    max_freq: f32,
+) -> FFT {
+    let fft_window = ((256 as u64 / 107 as u64) * freq_res as u64).next_power_of_two() as i32;
     let (_stream, _) = OutputStream::try_default().unwrap();
     let file = BufReader::new(File::open(audio_path).unwrap());
     let source = Decoder::new(file).unwrap();
@@ -103,21 +110,24 @@ pub fn compute_fft(audio_path: &PathBuf) -> FFT {
 
     let mut source = source.peekable();
 
-    let step_amount = ((sample_rate * n_channels) as usize / FFT_FPS as usize) as i32 - FFT_WINDOW;
+    let step_amount = ((sample_rate * n_channels) as usize / fft_fps as usize) as i32 - fft_window;
     let (mut min, mut max): (f32, f32) = (100.0, 0.0);
     let mut output_vec = Vec::new();
 
     while source.peek().is_some() {
         let mut frame = Vec::new();
-        for _ in 0..FFT_WINDOW {
-            frame.push(source.next().unwrap())
+        for _ in 0..fft_window {
+            match source.next() {
+                Some(x) => frame.push(x),
+                None => {}
+            };
         }
 
         for _ in 0..step_amount {
             source.next();
         }
 
-        let mut samples = [0.0; FFT_WINDOW as usize];
+        let mut samples = vec![0.0; fft_window as usize];
         for (i, stereo) in frame.chunks(n_channels as usize).enumerate() {
             samples[i] = stereo
                 .iter()
@@ -130,7 +140,7 @@ pub fn compute_fft(audio_path: &PathBuf) -> FFT {
         let spectrum_hann_window = samples_fft_to_spectrum(
             &hann_window,
             sample_rate as u32,
-            FrequencyLimit::Range(FREQ_WINDOW_LOW, FREQ_WINDOW_HIGH),
+            FrequencyLimit::Range(min_freq, max_freq),
             Some(&divide_by_N_sqrt),
         )
         .unwrap();

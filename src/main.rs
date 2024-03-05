@@ -4,38 +4,25 @@ mod utils;
 use fft::*;
 use utils::*;
 
+use bevy::render::mesh::VertexAttributeValues;
+use bevy::sprite::Anchor;
 use bevy::{
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 use clap::{ArgAction, Parser};
+use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 use rodio::{source::Source, Decoder, OutputStream};
+use std::ffi::OsString;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 use std::time::Duration;
-use std::ffi::OsString;
-use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-use bevy::render::mesh::VertexAttributeValues;
-use bevy::sprite::Anchor;
-
 
 // Constants
 const RENDERING_FPS: u32 = 60;
-const SCREEN_WIDTH: i32 = 1000;
-const SCREEN_HEIGHT: i32 = 700;
-
-const FREQUENCY_RESOLUTION: u32 = 100;
-const FFT_FPS: u32 = 12;
-const FREQ_WINDOW_LOW: f32 = 50.0;
-const FREQ_WINDOW_HIGH: f32 = 5000.0;
-const FFT_WINDOW: i32 =
-    ((256 as u64 / 107 as u64) * FREQUENCY_RESOLUTION as u64).next_power_of_two() as i32;
-const BAR_INTERPOLATION_FACTOR: u32 = 1;
 const RESCALING_THRESHOLDS: &[f32] = &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
-const RESCALING_FACTOR: &[f32] = &[2.0, 1.7, 1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.7];
-// const RESCALING_FACTOR: &[f32] = &[1.0; 9];
-
+const RESCALING_FACTOR: &[f32] = &[0.4, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5];
 
 #[derive(Debug, Parser)]
 #[clap(author, version, about)]
@@ -43,6 +30,38 @@ struct CLIArgs {
     /// File path to Audio file
     #[arg()]
     file_path: String,
+
+    /// Temporal resolution for FFT calculation (rendering always occurs at 60 fps with interpolation)
+    #[arg(long = "fft-fps", default_value_t = 12)]
+    fft_fps: u32,
+
+    /// Smoothing factor for spatial interpolation between bars
+    #[clap(long = "bar-smoothness", default_value_t = 1)]
+    bar_smoothness: u32,
+
+    /// Number of individual frequencies detected by the FFT
+    #[arg(long = "freq-resolution", default_value_t = 90)]
+    freq_resolution: u32,
+
+    /// Size of averaging window (larger = less movement)
+    #[arg(long = "min-freq", default_value_t = 0.0)]
+    min_freq: f32,
+
+    /// Size of averaging window (larger = less movement)
+    #[arg(long = "max-freq", default_value_t = 5000.0)]
+    max_freq: f32,
+
+    /// Size of averaging window (larger = less movement)
+    #[arg(long = "averaging-window", default_value_t = 1)]
+    averaging_window: u32,
+
+    /// Window width
+    #[arg(long = "width", default_value_t = 1000)]
+    window_width: i32,
+
+    /// Window height
+    #[arg(long = "height", default_value_t = 700)]
+    window_height: i32,
 
     /// Border size for each bar
     #[arg(long = "border-size", default_value_t = 1)]
@@ -83,6 +102,14 @@ struct FFTArgs {
     text_color: String,
     font_size: i32,
     background_color: String,
+    fft_fps: u32,
+    bar_smoothness: u32,
+    freq_resolution: u32,
+    window_width: i32,
+    window_height: i32,
+    averaging_window: u32,
+    min_freq: f32,
+    max_freq: f32,
 }
 
 #[derive(Resource)]
@@ -99,9 +126,9 @@ fn update_bars(
     mut fft_queue: ResMut<FFTQueue>,
     args: Res<FFTArgs>,
 ) {
-    let h = window.single_mut().physical_height();
+    let h = window.single_mut().height();
     let mut update_i = false;
-    let interval = RENDERING_FPS / FFT_FPS;
+    let interval = RENDERING_FPS / args.fft_fps;
 
     let curr_fft = match fft_queue.c as u32 % interval {
         0 => {
@@ -125,10 +152,10 @@ fn update_bars(
         let dims = rect.attribute_mut(Mesh::ATTRIBUTE_POSITION).unwrap();
         match dims {
             VertexAttributeValues::Float32x3(x) => {
-                x[0][1] = new_value.clone() * (h / 2) as f32;
-                x[1][1] = new_value.clone() * (h / 2) as f32;
-                x[2][1] = -new_value.clone() * (h / 2) as f32;
-                x[3][1] = -new_value.clone() * (h / 2) as f32;
+                x[0][1] = new_value.clone() * (h / 2.0) as f32;
+                x[1][1] = new_value.clone() * (h / 2.0) as f32;
+                x[2][1] = -new_value.clone() * (h / 2.0) as f32;
+                x[3][1] = -new_value.clone() * (h / 2.0) as f32;
             }
             _ => {}
         }
@@ -137,10 +164,10 @@ fn update_bars(
         let dims = rect.attribute_mut(Mesh::ATTRIBUTE_POSITION).unwrap();
         match dims {
             VertexAttributeValues::Float32x3(x) => {
-                x[0][1] = new_value.clone() * (h / 2) as f32 - args.border_size as f32;
-                x[1][1] = new_value.clone() * (h / 2) as f32 - args.border_size as f32;
-                x[2][1] = -new_value.clone() * (h / 2) as f32 + args.border_size as f32;
-                x[3][1] = -new_value.clone() * (h / 2) as f32 + args.border_size as f32;
+                x[0][1] = new_value.clone() * (h / 2.0) as f32 - args.border_size as f32;
+                x[1][1] = new_value.clone() * (h / 2.0) as f32 - args.border_size as f32;
+                x[2][1] = -new_value.clone() * (h / 2.0) as f32 + args.border_size as f32;
+                x[3][1] = -new_value.clone() * (h / 2.0) as f32 + args.border_size as f32;
             }
             _ => {}
         }
@@ -170,8 +197,8 @@ fn startup(
         ..Default::default()
     });
 
-    let w = window.single_mut().physical_width();
-    let h = window.single_mut().physical_height();
+    let w = window.single_mut().width();
+    let h = window.single_mut().height();
 
     if !args.disable_title {
         let text_style = TextStyle {
@@ -179,15 +206,19 @@ fn startup(
             font_size: args.font_size as f32,
             color: Color::hex(args.text_color.clone()).unwrap(),
         };
-    
-        commands.spawn(
-            Text2dBundle {
-                text: Text::from_section(format!("Playing: \"{}\"", args.file_path.file_name().unwrap().to_str().unwrap()), text_style.clone()),
-                transform: Transform::from_xyz(-(w as f32 / 2.0) + 10.0, (h as f32 / 2.0) - 10.0, 0.0),
-                text_anchor: Anchor::TopLeft,
-                ..default()
-            },
-        );
+
+        commands.spawn(Text2dBundle {
+            text: Text::from_section(
+                format!(
+                    "Playing: \"{}\"",
+                    args.file_path.file_name().unwrap().to_str().unwrap()
+                ),
+                text_style.clone(),
+            ),
+            transform: Transform::from_xyz(-(w as f32 / 2.0) + 10.0, (h as f32 / 2.0) - 10.0, 0.0),
+            text_anchor: Anchor::TopLeft,
+            ..default()
+        });
     };
 
     let num_bars = fft_queue.fft[0].len();
@@ -202,7 +233,7 @@ fn startup(
             mesh: Mesh2dHandle(handle1),
             material: materials.add(Color::hex(args.border_color.clone()).unwrap()),
             transform: Transform::from_xyz(
-                bar_size * i as f32 + (bar_size / 2.0) - (w / 2) as f32,
+                bar_size * i as f32 + (bar_size / 2.0) - (w / 2.0) as f32,
                 0.0,
                 0.0,
             ),
@@ -216,7 +247,7 @@ fn startup(
             mesh: Mesh2dHandle(handle2),
             material: materials.add(Color::hex(args.bar_color.clone()).unwrap()),
             transform: Transform::from_xyz(
-                bar_size * i as f32 + (bar_size / 2.0) - (w / 2) as f32,
+                bar_size * i as f32 + (bar_size / 2.0) - (w / 2.0) as f32,
                 0.0,
                 0.0,
             ),
@@ -236,9 +267,17 @@ fn main() {
     cache_path.push(format!(".{}.fft", file_name));
 
     println!("Computing FFT...");
-    let mut fft = compute_fft(&p);
+    let mut fft = compute_fft(
+        &p,
+        args.fft_fps,
+        args.freq_resolution,
+        args.min_freq,
+        args.max_freq,
+    );
 
+    fft = smooth_fft(fft, args.averaging_window);
     fft = normalize_fft(fft, RESCALING_THRESHOLDS, RESCALING_FACTOR);
+
     let mut fft_vec = fft.fft;
 
     for c in fft_vec.iter_mut() {
@@ -250,7 +289,7 @@ fn main() {
 
     fft_vec
         .par_iter_mut()
-        .for_each(|x| space_interpolate(x, BAR_INTERPOLATION_FACTOR));
+        .for_each(|x| space_interpolate(x, args.bar_smoothness));
 
     let mut binding = App::new();
     let app = binding
@@ -258,9 +297,8 @@ fn main() {
             primary_window: Some(Window {
                 title: "fftviz".into(),
                 name: Some("fftviz".into()),
-                resolution: (SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32).into(),
+                resolution: (args.window_width as f32, args.window_height as f32).into(),
                 resizable: false,
-                position: WindowPosition::Centered(MonitorSelection::Current),
                 prevent_default_event_handling: false,
                 enabled_buttons: bevy::window::EnabledButtons {
                     maximize: false,
