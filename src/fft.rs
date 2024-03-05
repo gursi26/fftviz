@@ -1,15 +1,14 @@
 use crate::*;
-use serde::{Deserialize, Serialize};
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use bincode::{deserialize, serialize};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rodio::{source::Source, Decoder, OutputStream};
+use serde::{Deserialize, Serialize};
 use spectrum_analyzer::scaling::divide_by_N_sqrt;
-use spectrum_analyzer::windows::hann_window;
+use spectrum_analyzer::windows::hamming_window;
 use spectrum_analyzer::{samples_fft_to_spectrum, FrequencyLimit};
 use std::fs::File;
 use std::io::{self, BufReader, Read, Write};
 use std::path::PathBuf;
-
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FFT {
@@ -19,7 +18,6 @@ pub struct FFT {
     pub min: f32,
     pub max: f32,
 }
-
 
 pub fn time_interpolate(v1: &Vec<f32>, v2: &Vec<f32>, alpha: f32) -> Vec<f32> {
     v1.iter()
@@ -41,6 +39,23 @@ pub fn space_interpolate(v: &mut Vec<f32>, num_new_frames: u32) {
             );
         }
     }
+}
+
+#[allow(dead_code)]
+pub fn smooth_fft(mut fft: FFT, alpha: u32) -> FFT {
+    let mut new_fft = Vec::new();
+    for i in (alpha as usize)..(fft.num_frames - alpha as usize) {
+        let mut new_frame = fft.fft[i].clone();
+        new_frame.iter_mut().enumerate().for_each(|(j, x)| {
+            *x = ((i - alpha as usize)..(i + alpha as usize))
+                .into_iter()
+                .map(|i| fft.fft[i][j])
+                .sum::<f32>() as f32 / (2.0 * alpha as f32 + 1.0)
+        });
+        new_fft.push(new_frame);
+    }
+    fft.fft = new_fft;
+    fft
 }
 
 pub fn normalize_fft(mut fft: FFT, bounds: &[f32], scaling_factor: &[f32]) -> FFT {
@@ -106,11 +121,12 @@ pub fn compute_fft(audio_path: &PathBuf) -> FFT {
         for (i, stereo) in frame.chunks(n_channels as usize).enumerate() {
             samples[i] = stereo
                 .iter()
-                .map(|x| x.clone() as f32 / n_channels as f32)
+                .map(|x| x.clone() as f32 * 20.0 / n_channels as f32)
                 .sum::<f32>();
         }
 
-        let hann_window = hann_window(&samples);
+        let hann_window = hamming_window(&samples);
+
         let spectrum_hann_window = samples_fft_to_spectrum(
             &hann_window,
             sample_rate as u32,
@@ -142,4 +158,3 @@ pub fn compute_fft(audio_path: &PathBuf) -> FFT {
         max,
     }
 }
-

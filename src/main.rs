@@ -27,13 +27,14 @@ const SCREEN_HEIGHT: i32 = 700;
 
 const FREQUENCY_RESOLUTION: u32 = 100;
 const FFT_FPS: u32 = 12;
-const FREQ_WINDOW_LOW: f32 = 0.0;
+const FREQ_WINDOW_LOW: f32 = 50.0;
 const FREQ_WINDOW_HIGH: f32 = 5000.0;
 const FFT_WINDOW: i32 =
     ((256 as u64 / 107 as u64) * FREQUENCY_RESOLUTION as u64).next_power_of_two() as i32;
 const BAR_INTERPOLATION_FACTOR: u32 = 1;
 const RESCALING_THRESHOLDS: &[f32] = &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
 const RESCALING_FACTOR: &[f32] = &[2.0, 1.7, 1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.7];
+// const RESCALING_FACTOR: &[f32] = &[1.0; 9];
 
 
 #[derive(Debug, Parser)]
@@ -158,7 +159,6 @@ fn startup(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut fft_queue: ResMut<FFTQueue>,
     args: Res<FFTArgs>,
-    asset_server: Res<AssetServer>,
 ) {
     commands.spawn(Camera2dBundle {
         camera: Camera {
@@ -174,9 +174,8 @@ fn startup(
     let h = window.single_mut().physical_height();
 
     if !args.disable_title {
-        let font = asset_server.load("fonts/Roboto-Regular.ttf");
         let text_style = TextStyle {
-            font: font.clone(),
+            font: Default::default(),
             font_size: args.font_size as f32,
             color: Color::hex(args.text_color.clone()).unwrap(),
         };
