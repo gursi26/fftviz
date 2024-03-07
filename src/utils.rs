@@ -1,4 +1,5 @@
 use std::path::Path;
+use bevy::prelude::*;
 use crate::*;
 
 pub fn cli_args_to_fft_args(cli_args: CLIArgs) -> FFTArgs {
@@ -15,12 +16,12 @@ pub fn cli_args_to_fft_args(cli_args: CLIArgs) -> FFTArgs {
     FFTArgs {
         file_path: Path::new(&cli_args.file_path).to_path_buf(),
         border_size: cli_args.border_size as i32,
-        border_color: cli_args.border_color,
-        bar_color: cli_args.bar_color,
-        disable_title: cli_args.disable_title,
-        text_color: cli_args.text_color,
+        border_color: Color::hex(cli_args.border_color).unwrap(),
+        bar_color: Color::hex(cli_args.bar_color).unwrap(),
+        track_name: cli_args.track_name,
+        text_color: Color::hex(cli_args.text_color).unwrap(),
         font_size: cli_args.font_size as i32,
-        background_color: cli_args.background_color,
+        background_color: Color::hex(cli_args.background_color).unwrap(),
         bar_smoothness: cli_args.bar_smoothness,
         fft_fps: cli_args.fft_fps,
         freq_resolution: cli_args.freq_resolution,
@@ -28,13 +29,13 @@ pub fn cli_args_to_fft_args(cli_args: CLIArgs) -> FFTArgs {
         window_width: cli_args.window_width,
         averaging_window: cli_args.averaging_window,
         min_freq: cli_args.min_freq,
-        max_freq: cli_args.max_freq
+        max_freq: cli_args.max_freq,
     }
 }
 
 pub fn bar_smoothness_constraint(v: u32) { 
     if v > 3 {
-        println!("bar-smoothness must be between 1 and 3 inclusive.");
+        println!("bar-smoothness must be between 0 and 3 inclusive.");
         std::process::exit(1);
     }
 }
