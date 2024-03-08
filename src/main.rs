@@ -46,7 +46,7 @@ const RESCALING_FACTOR: &[f32] = &[0.4, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5];
 const MIN_BAR_HEIGHT: f32 = 0.001;
 const MAX_BAR_HEIGHT: f32 = 0.45;
 
-#[derive(Resource)]
+#[derive(Resource, Clone, Component, Debug)]
 struct FFTArgs {
     file_path: PathBuf,
     border_size: i32,

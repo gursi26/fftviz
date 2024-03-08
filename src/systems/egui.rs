@@ -58,6 +58,11 @@ pub fn ui_example_system(
                 ui.label("Background color: ");
                 color_picker_widget(ui, &mut args.background_color);
             });
+
+            ui.horizontal(|ui| {
+                ui.label("Border size: ");
+                ui.add(egui::Slider::new(&mut args.border_size, 0..=10).text("value"));
+            });
         });
     }
 }

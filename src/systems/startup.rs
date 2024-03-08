@@ -81,6 +81,11 @@ pub fn startup(
 ) {
     commands.spawn(Camera2dBundle::default());
 
+    let mut differencing_args = args.clone();
+    differencing_args.track_name = !args.track_name;
+
+    commands.spawn(differencing_args);
+
     let w = window.single_mut().width();
     let h = window.single_mut().height();
 
