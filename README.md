@@ -18,10 +18,14 @@ cargo install fftviz
 fftviz "path/to/audio/file.mp3"
 ```
 
-- Use the `-h` flag for configuration options
+- Keybinds:
+    - `q` to quit
+    - `e` for config gui
+
+- Run with `-h` flag for configuration options
 ```
 fftviz -h
-A quick FFT visualizer for audio files
+A lightweight, customizable FFT visualizer for audio files.
 
 Usage: fftviz [OPTIONS] <FILE_PATH>
 
@@ -29,14 +33,32 @@ Arguments:
   <FILE_PATH>  File path to Audio file
 
 Options:
+      --fft-fps <FFT_FPS>
+          Temporal resolution for FFT calculation (rendering always occurs at 60 fps with interpolation) [default: 12]
+      --bar-smoothness <BAR_SMOOTHNESS>
+          Smoothing factor for spatial interpolation between bars [default: 1]
+      --freq-resolution <FREQ_RESOLUTION>
+          Number of individual frequencies detected by the FFT [default: 90]
+      --min-freq <MIN_FREQ>
+          Maximum frequency detected by FFT [default: 0]
+      --max-freq <MAX_FREQ>
+          Minimum frequency detected by FFT [default: 5000]
+      --averaging-window <AVERAGING_WINDOW>
+          Size of averaging window (larger = less movement) [default: 1]
+      --width <WINDOW_WIDTH>
+          Window width [default: 1000]
+      --height <WINDOW_HEIGHT>
+          Window height [default: 700]
       --border-size <BORDER_SIZE>
           Border size for each bar [default: 1]
       --border-color <BORDER_COLOR>
           Border color for each bar (in hex) [default: 000000]
       --bar-color <BAR_COLOR>
           Color for each bar (in hex) [default: FF0000]
-      --disable-title
-          Whether to disable printing
+      --track-name
+          Use if you want track name to be printed
+      --display-gui
+          Use if you want the gui to be open when launched
       --text-color <TEXT_COLOR>
           Color for currently playing text (in hex) [default: FFFFFF]
       --font-size <FONT_SIZE>
