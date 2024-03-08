@@ -169,10 +169,12 @@ fn main() {
         .add_systems(Update, update_view_settings);
 
     // Play audio and start app
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let file = BufReader::new(File::open(&fp).unwrap());
     let source = Decoder::new(file).unwrap();
-    stream_handle.play_raw(source.convert_samples()).unwrap();
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let sink = rodio::Sink::try_new(&stream_handle).unwrap();
+    sink.set_volume(0.7);
+    sink.append(source);
 
     app.run();
 }
