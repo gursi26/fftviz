@@ -33,17 +33,18 @@ pub fn update_fft(
     let interval = RENDERING_FPS / args.fft_fps;
 
     // Get the current frame (either from fft or interpolation)
+    let clamped_frame_counter = app_state.fft_frame_counter.clamp(0, app_state.fft.len() - 1);
     let curr_fft = match app_state.total_frame_counter as u32 % interval {
         0 => {
             if app_state.fft_frame_counter > app_state.fft.len() {
                 std::process::exit(0);
             }
             update_i = true;
-            app_state.fft[app_state.fft_frame_counter].clone()
+            app_state.fft[clamped_frame_counter].clone()
         }
         rem => time_interpolate(
-            &(app_state.fft[app_state.fft_frame_counter - 1]),
-            &(app_state.fft[app_state.fft_frame_counter]),
+            &(app_state.fft[clamped_frame_counter - 1]),
+            &(app_state.fft[clamped_frame_counter]),
             rem as f32 / interval as f32,
         ),
     };

@@ -31,12 +31,9 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 // TODO : Add to brew, and whatever linux/windows uses
-// TODO : Fix indexing error 
-// TODO : Add border resizing, font resizing at runtime
 // TODO : Add yaml config file for changing default settings
 // TODO : Add a button to gui to write current state to config file
-// TODO : Add instructions somewhere (e for gui, q to quit)
-// TODO : Combine FFTArgs with AppState?
+// TODO : Add a button to gui to reset to default 
 
 // Constants
 const RENDERING_FPS: u32 = 60;
