@@ -67,7 +67,6 @@ pub fn update_view_settings (
 
     // Update border size
     if differencing_args.border_size != args.border_size {
-        dbg!("Update occured");
         let w = window.single_mut().width();
         let bar_size = ((w as f32 / (app_state.curr_bars.len() / 2) as f32) - args.border_size as f32) / 2.0;
 
