@@ -7,9 +7,15 @@ A lightweight, customizable FFT visualizer for audio files. Built with Rust + Be
 
 # Installation
 
-Install fftviz with cargo.
+## Cargo
 ```
 cargo install fftviz
+```
+
+## Homebrew
+```
+brew tap gursi26/fftviz
+brew install fftviz
 ```
 
 # Usage
