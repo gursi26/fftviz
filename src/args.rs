@@ -15,8 +15,8 @@ pub struct CLIArgs {
     fft_fps: u32,
 
     /// Smoothing factor for spatial interpolation between bars
-    #[clap(long = "bar-smoothness", default_value_t = 1)]
-    bar_smoothness: u32,
+    #[clap(long = "smoothness", default_value_t = 1)]
+    smoothness: u32,
 
     /// Number of individual frequencies detected by the FFT
     #[arg(long = "freq-resolution", default_value_t = 90)]
@@ -29,10 +29,6 @@ pub struct CLIArgs {
     /// Minimum frequency detected by FFT
     #[arg(long = "max-freq", default_value_t = 5000.0)]
     max_freq: f32,
-
-    /// Size of averaging window (larger = less movement)
-    #[arg(long = "averaging-window", default_value_t = 1)]
-    averaging_window: u32,
 
     /// Window width
     #[arg(long = "width", default_value_t = 1000.0)]
@@ -81,10 +77,9 @@ pub fn cli_args_to_fft_args(cli_args: CLIArgs) -> FFTArgs {
         std::process::exit(1);
     }
 
-    bar_smoothness_constraint(cli_args.bar_smoothness);
+    bar_smoothness_constraint(cli_args.smoothness);
     fft_fps_constraint(cli_args.fft_fps);
     freq_resolution_constraint(cli_args.freq_resolution);
-    averaging_window_constraint(cli_args.averaging_window);
 
     FFTArgs {
         file_path: Path::new(&cli_args.file_path).to_path_buf(),
@@ -95,12 +90,11 @@ pub fn cli_args_to_fft_args(cli_args: CLIArgs) -> FFTArgs {
         text_color: Color::hex(cli_args.text_color).unwrap(),
         font_size: cli_args.font_size as i32,
         background_color: Color::hex(cli_args.background_color).unwrap(),
-        bar_smoothness: cli_args.bar_smoothness,
+        smoothness: cli_args.smoothness,
         fft_fps: cli_args.fft_fps,
         freq_resolution: cli_args.freq_resolution,
         window_height: cli_args.window_height,
         window_width: cli_args.window_width,
-        averaging_window: cli_args.averaging_window,
         min_freq: cli_args.min_freq,
         max_freq: cli_args.max_freq,
         display_gui: cli_args.display_gui
@@ -113,7 +107,7 @@ pub fn parse_cli_args() -> FFTArgs {
 // Value constraints
 pub fn bar_smoothness_constraint(v: u32) { 
     if v > 3 {
-        println!("bar-smoothness must be between 0 and 3 inclusive.");
+        println!("smoothness must be between 0 and 3 inclusive.");
         std::process::exit(1);
     }
 }
@@ -128,13 +122,6 @@ pub fn fft_fps_constraint(v: u32) {
 fn freq_resolution_constraint(v: u32) { 
     if v < 10 || v > 300 {
         println!("freq-resolution must be between 10 and 300 inclusive.");
-        std::process::exit(1);
-    }
-}
-
-fn averaging_window_constraint(v: u32) { 
-    if v < 1 || v > 5 {
-        println!("averaging-window must be between 1 and 5 inclusive.");
         std::process::exit(1);
     }
 }

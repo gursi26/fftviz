@@ -30,7 +30,7 @@ use std::io::BufReader;
 use std::path::PathBuf;
 use std::time::Duration;
 
-// TODO : Add to brew, and whatever linux/windows uses
+// TODO : Add to other package managers
 // TODO : Add yaml config file for changing default settings
 // TODO : Add a button to gui to write current state to config file
 // TODO : Add a button to gui to reset to default 
@@ -38,7 +38,9 @@ use std::time::Duration;
 // Constants
 const RENDERING_FPS: u32 = 60;
 const RESCALING_THRESHOLDS: &[f32] = &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
-const RESCALING_FACTOR: &[f32] = &[0.4, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5];
+const INTENSITY_RESCALING: &[f32] = &[0.4, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5];
+const FREQ_RESCALING: &[f32] = &[0.9, 1.2, 1.2, 1.2, 1.0];
+const AVERAGING_WINDOW: u32 = 1;
 
 const MIN_BAR_HEIGHT: f32 = 0.001;
 const MAX_BAR_HEIGHT: f32 = 0.45;
@@ -54,11 +56,10 @@ struct FFTArgs {
     font_size: i32,
     background_color: Color,
     fft_fps: u32,
-    bar_smoothness: u32,
+    smoothness: u32,
     freq_resolution: u32,
     window_width: f32,
     window_height: f32,
-    averaging_window: u32,
     min_freq: f32,
     max_freq: f32,
     display_gui: bool,
@@ -84,11 +85,13 @@ fn compute_and_preprocess_fft(fp: &PathBuf, args: &FFTArgs) -> Vec<Vec<f32>> {
         args.max_freq,
     );
 
-    fft = smooth_fft(fft, args.averaging_window);
-    fft = normalize_fft(fft, RESCALING_THRESHOLDS, RESCALING_FACTOR);
+    fft = smooth_fft(fft, AVERAGING_WINDOW);
+    fft = intensity_normalize_fft(fft, RESCALING_THRESHOLDS, INTENSITY_RESCALING);
+    fft = frequency_normalize_fft(fft, FREQ_RESCALING);
 
     let mut fft_vec = fft.fft;
 
+    // Reverses bar order and prepends
     for c in fft_vec.iter_mut() {
         let mut reversed = c.clone();
         reversed.reverse();
@@ -98,7 +101,7 @@ fn compute_and_preprocess_fft(fp: &PathBuf, args: &FFTArgs) -> Vec<Vec<f32>> {
 
     fft_vec
         .par_iter_mut()
-        .for_each(|x| space_interpolate(x, args.bar_smoothness));
+        .for_each(|x| space_interpolate(x, args.smoothness));
 
     fft_vec
 }
