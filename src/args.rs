@@ -35,12 +35,12 @@ pub struct CLIArgs {
     averaging_window: u32,
 
     /// Window width
-    #[arg(long = "width", default_value_t = 1000)]
-    window_width: i32,
+    #[arg(long = "width", default_value_t = 1000.0)]
+    window_width: f32,
 
     /// Window height
-    #[arg(long = "height", default_value_t = 700)]
-    window_height: i32,
+    #[arg(long = "height", default_value_t = 700.0)]
+    window_height: f32,
 
     /// Border size for each bar
     #[arg(long = "border-size", default_value_t = 1)]

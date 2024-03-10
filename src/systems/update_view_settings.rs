@@ -29,8 +29,61 @@ pub fn update_view_settings (
     mut clear_color: ResMut<ClearColor>,
     mut text_query: Query<&mut Text>,
     mut differencing_args_query: Query<&mut FFTArgs>,
+    mut bar_query: Query<&mut Transform, Without<Text>>
 ) {
     let mut differencing_args = differencing_args_query.get_single_mut().unwrap();
+
+    // Update bar sizes and positions on resize 
+    let w = window.single_mut().width();
+    if differencing_args.window_width != w {
+        let bar_size = w / app_state.fft[0].len() as f32;
+        for (i, b) in app_state.despawn_handles.chunks(2).enumerate() {
+            bar_query.get_mut(b[0]).unwrap().translation.x = bar_size * i as f32 + bar_size / 2.0 - w / 2.0;
+            bar_query.get_mut(b[1]).unwrap().translation.x = bar_size * i as f32 + bar_size / 2.0 - w / 2.0;
+        }
+
+
+        let outer_bar_size = bar_size / 2.0;
+        let inner_bar_size = (bar_size - args.border_size as f32) / 2.0;
+
+        for handle in app_state.curr_bars.chunks(2) {
+            let handle1 = handle[0].0.clone_weak();
+            let handle2 = handle[1].0.clone_weak();
+
+            let dims = meshes
+                .get_mut(handle1)
+                .unwrap()
+                .attribute_mut(Mesh::ATTRIBUTE_POSITION)
+                .unwrap();
+
+            match dims {
+                VertexAttributeValues::Float32x3(x) => {
+                    x[0][0] = outer_bar_size;
+                    x[1][0] = -outer_bar_size;
+                    x[2][0] = -outer_bar_size;
+                    x[3][0] = outer_bar_size;
+                }
+                _ => {}
+            }
+
+            let dims = meshes
+                .get_mut(handle2)
+                .unwrap()
+                .attribute_mut(Mesh::ATTRIBUTE_POSITION)
+                .unwrap();
+
+            match dims {
+                VertexAttributeValues::Float32x3(x) => {
+                    x[0][0] = inner_bar_size;
+                    x[1][0] = -inner_bar_size;
+                    x[2][0] = -inner_bar_size;
+                    x[3][0] = inner_bar_size;
+                }
+                _ => {}
+            }
+        }
+        differencing_args.window_width = w;
+    }
 
     // Update text color + visibility + size
     if differencing_args.text_color != args.text_color || differencing_args.track_name != args.track_name || differencing_args.font_size != args.font_size {
