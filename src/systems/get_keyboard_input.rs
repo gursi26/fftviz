@@ -30,4 +30,22 @@ pub fn get_keyboard_input(
     if keyboard_input.just_pressed(KeyCode::KeyE) {
         args.display_gui = !args.display_gui;
     }
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        args.paused = !args.paused;
+        if app_state.sink.is_paused() {
+            app_state.sink.play();
+        } else {
+            app_state.sink.pause();
+        }
+    }
+    if keyboard_input.just_pressed(KeyCode::ArrowUp) {
+        args.volume += 0.1;
+        args.volume = args.volume.min(1.0);
+        app_state.sink.set_volume(args.volume);
+    }
+    if keyboard_input.just_pressed(KeyCode::ArrowDown) {
+        args.volume -= 0.1;
+        args.volume = args.volume.max(0.0);
+        app_state.sink.set_volume(args.volume);
+    }
 }

@@ -63,10 +63,13 @@ struct FFTArgs {
     min_freq: f32,
     max_freq: f32,
     display_gui: bool,
+    volume: f32,
+    paused: bool,
 }
 
 #[derive(Resource)]
 struct AppState {
+    sink: rodio::Sink,
     fft: Vec<Vec<f32>>,
     curr_bars: Vec<(Handle<Mesh>, Handle<ColorMaterial>)>,
     despawn_handles: Vec<Entity>,
@@ -116,6 +119,8 @@ fn main() {
     // Compute and preprocess FFT (spatial + temporal interpolation and normalization)
     let fft_vec = compute_and_preprocess_fft(&fp, &args);
 
+    let volume = args.volume;
+
     // Initialize Bevy app
     let mut binding = App::new();
     let app = binding
@@ -146,13 +151,6 @@ fn main() {
 
         // Insert resources
         .insert_resource(ClearColor(args.background_color))
-        .insert_resource(AppState {
-            fft: fft_vec,
-            curr_bars: Vec::new(),
-            despawn_handles: Vec::new(),
-            fft_frame_counter: 0,
-            total_frame_counter: 0,
-        })
         .insert_resource(args)
 
         // Insert systems
@@ -172,8 +170,17 @@ fn main() {
     let source = Decoder::new(file).unwrap();
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let sink = rodio::Sink::try_new(&stream_handle).unwrap();
-    sink.set_volume(0.7);
+    sink.set_volume(volume);
     sink.append(source);
+
+    app.insert_resource(AppState {
+        sink,
+        fft: fft_vec,
+        curr_bars: Vec::new(),
+        despawn_handles: Vec::new(),
+        fft_frame_counter: 0,
+        total_frame_counter: 0,
+    });
 
     app.run();
 }

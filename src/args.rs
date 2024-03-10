@@ -30,6 +30,10 @@ pub struct CLIArgs {
     #[arg(long = "max-freq", default_value_t = 5000.0)]
     max_freq: f32,
 
+    /// Volume
+    #[arg(long = "volume", default_value_t = 0.7)]
+    volume: f32,
+
     /// Window width
     #[arg(long = "width", default_value_t = 1000.0)]
     window_width: f32,
@@ -97,7 +101,9 @@ pub fn cli_args_to_fft_args(cli_args: CLIArgs) -> FFTArgs {
         window_width: cli_args.window_width,
         min_freq: cli_args.min_freq,
         max_freq: cli_args.max_freq,
-        display_gui: cli_args.display_gui
+        display_gui: cli_args.display_gui,
+        volume: cli_args.volume,
+        paused: false,
     }
 }
 

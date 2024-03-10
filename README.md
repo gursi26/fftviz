@@ -18,20 +18,23 @@ brew tap gursi26/fftviz
 brew install fftviz
 ```
 
+# Keybinds:
+- `q` to close window.
+- `e` to open config gui in player window.
+- `Space` to pause/play.
+- `↑` to increase volume.
+- `↓` to decrease volume.
+
 # Usage
 - Run fftviz with a path to an audio file.
 ```
 fftviz "path/to/audio/file.mp3"
 ```
 
-- Keybinds:
-    - `q` to quit
-    - `e` for config gui
-
 - Run with `-h` flag for configuration options
 ```
 fftviz -h
-A lightweight, customizable FFT visualizer for audio files.
+A lightweight, customizable FFT visualizer for audio files
 
 Usage: fftviz [OPTIONS] <FILE_PATH>
 
@@ -41,7 +44,7 @@ Arguments:
 Options:
       --fft-fps <FFT_FPS>
           Temporal resolution for FFT calculation (rendering always occurs at 60 fps with interpolation) [default: 12]
-      --bar-smoothness <BAR_SMOOTHNESS>
+      --smoothness <SMOOTHNESS>
           Smoothing factor for spatial interpolation between bars [default: 1]
       --freq-resolution <FREQ_RESOLUTION>
           Number of individual frequencies detected by the FFT [default: 90]
@@ -49,8 +52,8 @@ Options:
           Maximum frequency detected by FFT [default: 0]
       --max-freq <MAX_FREQ>
           Minimum frequency detected by FFT [default: 5000]
-      --averaging-window <AVERAGING_WINDOW>
-          Size of averaging window (larger = less movement) [default: 1]
+      --volume <VOLUME>
+          Volume [default: 0.7]
       --width <WINDOW_WIDTH>
           Window width [default: 1000]
       --height <WINDOW_HEIGHT>
