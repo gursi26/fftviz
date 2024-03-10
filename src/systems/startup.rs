@@ -42,7 +42,7 @@ fn spawn_bars(
                 transform: Transform::from_xyz(
                     bar_size * i as f32 + (bar_size / 2.0) - (w / 2.0) as f32,
                     0.0,
-                    0.0,
+                    -1.0,
                 ),
                 ..default()
             })

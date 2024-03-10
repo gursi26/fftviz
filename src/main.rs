@@ -56,8 +56,8 @@ struct FFTArgs {
     fft_fps: u32,
     bar_smoothness: u32,
     freq_resolution: u32,
-    window_width: i32,
-    window_height: i32,
+    window_width: f32,
+    window_height: f32,
     averaging_window: u32,
     min_freq: f32,
     max_freq: f32,
@@ -128,7 +128,6 @@ fn main() {
                     .into(),
                     name: Some("fftviz".into()),
                     resolution: (args.window_width as f32, args.window_height as f32).into(),
-                    resizable: false,
                     prevent_default_event_handling: false,
                     enabled_buttons: bevy::window::EnabledButtons {
                         maximize: false,
