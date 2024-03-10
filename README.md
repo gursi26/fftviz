@@ -18,7 +18,7 @@ brew tap gursi26/fftviz
 brew install fftviz
 ```
 
-# Keybinds:
+# Keybinds
 - `q` to close window.
 - `e` to open config gui in player window.
 - `Space` to pause/play.
