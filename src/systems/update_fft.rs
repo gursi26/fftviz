@@ -85,8 +85,10 @@ pub fn update_fft(
     }
 
     // Moves real frame and interpolated frame counters
-    if update_i {
-        app_state.fft_frame_counter += 1;
+    if !args.paused {
+        if update_i {
+            app_state.fft_frame_counter += 1;
+        }
+        app_state.total_frame_counter += 1;
     }
-    app_state.total_frame_counter += 1;
 }
