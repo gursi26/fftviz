@@ -40,7 +40,6 @@ pub fn space_interpolate(v: &mut Vec<f32>, num_new_frames: u32) {
     }
 }
 
-#[allow(dead_code)]
 pub fn smooth_fft(mut fft: FFT, alpha: u32) -> FFT {
     let mut new_fft = Vec::new();
     for i in (alpha as usize)..(fft.num_frames - alpha as usize) {
@@ -58,7 +57,7 @@ pub fn smooth_fft(mut fft: FFT, alpha: u32) -> FFT {
     fft
 }
 
-pub fn normalize_fft(mut fft: FFT, bounds: &[f32], scaling_factor: &[f32]) -> FFT {
+pub fn intensity_normalize_fft(mut fft: FFT, bounds: &[f32], scaling_factor: &[f32]) -> FFT {
     let min_max_scale = fft.max - fft.min;
     let rescale = |mut x: Vec<f32>| -> Vec<f32> {
         for i in x.iter_mut() {
@@ -69,6 +68,20 @@ pub fn normalize_fft(mut fft: FFT, bounds: &[f32], scaling_factor: &[f32]) -> FF
                     break;
                 }
             }
+        }
+        x
+    };
+    fft.fft = fft.fft.into_par_iter().map(|x| rescale(x)).collect();
+    fft
+}
+
+pub fn frequency_normalize_fft(mut fft: FFT, scaling_factor: &[f32]) -> FFT {
+    let n_freq_buckets = scaling_factor.len();
+    let n_bars = fft.fft[0].len();
+    let bars_per_bucket = n_bars / n_freq_buckets;
+    let rescale = |mut x: Vec<f32>| -> Vec<f32> {
+        for (i, v) in x.iter_mut().enumerate() {
+            *v *= scaling_factor[(i / bars_per_bucket).min(n_freq_buckets - 1)];
         }
         x
     };
