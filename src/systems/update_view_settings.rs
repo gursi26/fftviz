@@ -27,21 +27,25 @@ pub fn update_view_settings (
     mut app_state: ResMut<AppState>,
     mut args: ResMut<FFTArgs>,
     mut clear_color: ResMut<ClearColor>,
-    mut text_query: Query<&mut Text>,
+    mut text_query: Query<(&mut Transform, &mut Text)>,
     mut differencing_args_query: Query<&mut FFTArgs>,
-    mut bar_query: Query<&mut Transform, Without<Text>>
+    mut bar_query: Query<&mut Transform, Without<Text>>,
 ) {
     let mut differencing_args = differencing_args_query.get_single_mut().unwrap();
 
     // Update bar sizes and positions on resize 
     let w = window.single_mut().width();
     if differencing_args.window_width != w {
+        let h = window.single_mut().height();
+        let mut text = text_query.get_single_mut().unwrap().0;
+        text.translation.x = 10.0 - w / 2.0;
+        text.translation.y = h / 2.0 - 10.0;
+
         let bar_size = w / app_state.fft[0].len() as f32;
         for (i, b) in app_state.despawn_handles.chunks(2).enumerate() {
             bar_query.get_mut(b[0]).unwrap().translation.x = bar_size * i as f32 + bar_size / 2.0 - w / 2.0;
             bar_query.get_mut(b[1]).unwrap().translation.x = bar_size * i as f32 + bar_size / 2.0 - w / 2.0;
         }
-
 
         let outer_bar_size = bar_size / 2.0;
         let inner_bar_size = (bar_size - args.border_size as f32) / 2.0;
@@ -89,10 +93,10 @@ pub fn update_view_settings (
     if differencing_args.text_color != args.text_color || differencing_args.track_name != args.track_name || differencing_args.font_size != args.font_size {
         for mut text in &mut text_query {
             if args.track_name {
-                text.sections[0].style.color = args.text_color;
-                text.sections[0].style.font_size = args.font_size as f32;
+                text.1.sections[0].style.color = args.text_color;
+                text.1.sections[0].style.font_size = args.font_size as f32;
             } else {
-                text.sections[0].style.color = Color::rgba(0.0, 0.0, 0.0, 0.0);
+                text.1.sections[0].style.color = Color::rgba(0.0, 0.0, 0.0, 0.0);
             }
         }
 
