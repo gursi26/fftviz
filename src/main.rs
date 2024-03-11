@@ -3,9 +3,11 @@
 mod args;
 mod fft;
 mod systems;
+mod config;
 
 use args::*;
 use fft::*;
+use config::*;
 use systems::get_keyboard_input::*;
 use systems::egui::*;
 use systems::startup::*;

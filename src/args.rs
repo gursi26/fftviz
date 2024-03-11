@@ -31,7 +31,7 @@ pub struct CLIArgs {
     max_freq: f32,
 
     /// Volume
-    #[arg(long = "volume", default_value_t = 0.7)]
+    #[arg(long = "volume", default_value_t = 0.5)]
     volume: f32,
 
     /// Window width
