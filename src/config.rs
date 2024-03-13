@@ -1,5 +1,5 @@
 use dirs::home_dir;
-use std::{io::{stdout, Read, Write}, path::PathBuf};
+use std::{fs::remove_file, io::{stdout, Read, Write}, path::PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::fs::{read_to_string, create_dir, create_dir_all, File, OpenOptions};
@@ -128,7 +128,9 @@ pub fn write_fftargs_to_config(args: &FFTArgs) {
 
     cfg_yaml.retain(|x| x.contains(":"));
 
-    let f = File::open(&cfg_path).expect("Unable to create file");
+    remove_file(&cfg_path);
+
+    let f = File::create(&cfg_path).expect("Unable to create file");
     let mut f = BufWriter::new(f);
     f.write_all(cfg_yaml.join("\n").as_bytes()).expect("Unable to write data");
 }

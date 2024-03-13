@@ -22,6 +22,7 @@ use bevy::{
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
+use stopwatch::{Stopwatch};
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use clap::{ArgAction, Parser};
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
@@ -78,6 +79,8 @@ struct AppState {
     despawn_handles: Vec<Entity>,
     total_frame_counter: usize,
     fft_frame_counter: usize,
+    stopwatch: Stopwatch,
+    display_str: String,
 }
 
 
@@ -183,6 +186,8 @@ fn main() {
         despawn_handles: Vec::new(),
         fft_frame_counter: 0,
         total_frame_counter: 0,
+        stopwatch: Stopwatch::new(),
+        display_str: String::new(),
     });
 
     app.run();
