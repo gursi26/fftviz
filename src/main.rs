@@ -43,6 +43,7 @@ const RESCALING_THRESHOLDS: &[f32] = &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0
 const INTENSITY_RESCALING: &[f32] = &[0.4, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5];
 const FREQ_RESCALING: &[f32] = &[0.9, 1.2, 1.2, 1.2, 1.0];
 const AVERAGING_WINDOW: u32 = 1;
+const FFT_FPS: u32 = 12;
 
 const MIN_BAR_HEIGHT: f32 = 0.001;
 const MAX_BAR_HEIGHT: f32 = 0.45;
@@ -57,7 +58,6 @@ struct FFTArgs {
     text_color: Color,
     font_size: i32,
     background_color: Color,
-    fft_fps: u32,
     smoothness: u32,
     freq_resolution: u32,
     window_width: f32,
@@ -67,6 +67,7 @@ struct FFTArgs {
     display_gui: bool,
     volume: f32,
     paused: bool,
+    fft_fps: u32,
 }
 
 #[derive(Resource)]

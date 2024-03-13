@@ -1,4 +1,4 @@
-use crate::{AppState, FFTArgs};
+use crate::{write_fftargs_to_config, AppState, FFTArgs};
 use bevy::render::mesh::VertexAttributeValues;
 use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy::sprite::Anchor;
@@ -28,7 +28,6 @@ pub fn ui_example_system(
         let window_handle = egui::Window::new("")
             .fixed_size(egui::Vec2 { x: 100.0, y: 100.0 })
             .anchor(Align2::RIGHT_TOP, egui::Vec2::new(-10.0, 10.0))
-            // .fixed_pos(egui::Pos2 { x: 10.0, y: 10.0 })
             .collapsible(false);
 
         window_handle.show(contexts.ctx_mut(), |ui| {
@@ -62,6 +61,15 @@ pub fn ui_example_system(
             ui.horizontal(|ui| {
                 ui.label("Border size: ");
                 ui.add(egui::Slider::new(&mut args.border_size, 0..=10).text("value"));
+            });
+
+            ui.allocate_space(egui::Vec2::new(1.0, 10.0));
+            ui.horizontal(|ui| {
+                if ui.button("Save settings").clicked() {
+                    write_fftargs_to_config(&args)
+                }
+                if ui.button("Reset").clicked() {
+                }
             });
         });
     }
