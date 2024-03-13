@@ -39,13 +39,13 @@ pub fn get_keyboard_input(
         }
     }
     if keyboard_input.just_pressed(KeyCode::ArrowUp) {
-        args.volume += 0.1;
-        args.volume = args.volume.min(1.0);
-        app_state.sink.set_volume(args.volume);
+        args.volume += 5;
+        args.volume = args.volume.min(100);
+        app_state.sink.set_volume(args.volume as f32 / 100.0);
     }
     if keyboard_input.just_pressed(KeyCode::ArrowDown) {
-        args.volume -= 0.1;
-        args.volume = args.volume.max(0.0);
-        app_state.sink.set_volume(args.volume);
+        args.volume -= 5;
+        args.volume = args.volume.max(0);
+        app_state.sink.set_volume(args.volume as f32 / 100.0);
     }
 }

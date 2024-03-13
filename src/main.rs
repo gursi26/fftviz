@@ -3,9 +3,11 @@
 mod args;
 mod fft;
 mod systems;
+mod config;
 
 use args::*;
 use fft::*;
+use config::*;
 use systems::get_keyboard_input::*;
 use systems::egui::*;
 use systems::startup::*;
@@ -20,6 +22,7 @@ use bevy::{
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
+use stopwatch::{Stopwatch};
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use clap::{ArgAction, Parser};
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
@@ -41,6 +44,7 @@ const RESCALING_THRESHOLDS: &[f32] = &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0
 const INTENSITY_RESCALING: &[f32] = &[0.4, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5];
 const FREQ_RESCALING: &[f32] = &[0.9, 1.2, 1.2, 1.2, 1.0];
 const AVERAGING_WINDOW: u32 = 1;
+const FFT_FPS: u32 = 12;
 
 const MIN_BAR_HEIGHT: f32 = 0.001;
 const MAX_BAR_HEIGHT: f32 = 0.45;
@@ -55,7 +59,6 @@ struct FFTArgs {
     text_color: Color,
     font_size: i32,
     background_color: Color,
-    fft_fps: u32,
     smoothness: u32,
     freq_resolution: u32,
     window_width: f32,
@@ -63,8 +66,9 @@ struct FFTArgs {
     min_freq: f32,
     max_freq: f32,
     display_gui: bool,
-    volume: f32,
+    volume: u32,
     paused: bool,
+    fft_fps: u32,
 }
 
 #[derive(Resource)]
@@ -75,6 +79,8 @@ struct AppState {
     despawn_handles: Vec<Entity>,
     total_frame_counter: usize,
     fft_frame_counter: usize,
+    stopwatch: Stopwatch,
+    display_str: String,
 }
 
 
@@ -170,7 +176,7 @@ fn main() {
     let source = Decoder::new(file).unwrap();
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let sink = rodio::Sink::try_new(&stream_handle).unwrap();
-    sink.set_volume(volume);
+    sink.set_volume(volume as f32 / 100.0);
     sink.append(source);
 
     app.insert_resource(AppState {
@@ -180,6 +186,8 @@ fn main() {
         despawn_handles: Vec::new(),
         fft_frame_counter: 0,
         total_frame_counter: 0,
+        stopwatch: Stopwatch::new(),
+        display_str: String::new(),
     });
 
     app.run();

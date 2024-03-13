@@ -1,4 +1,4 @@
-use crate::{AppState, FFTArgs};
+use crate::{cli_args_to_fft_args, config_path, parse_cli_args, reset_config_file, write_fftargs_to_config, AppState, FFTArgs};
 use bevy::render::mesh::VertexAttributeValues;
 use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy::sprite::Anchor;
@@ -28,7 +28,6 @@ pub fn ui_example_system(
         let window_handle = egui::Window::new("")
             .fixed_size(egui::Vec2 { x: 100.0, y: 100.0 })
             .anchor(Align2::RIGHT_TOP, egui::Vec2::new(-10.0, 10.0))
-            // .fixed_pos(egui::Pos2 { x: 10.0, y: 10.0 })
             .collapsible(false);
 
         window_handle.show(contexts.ctx_mut(), |ui| {
@@ -63,6 +62,35 @@ pub fn ui_example_system(
                 ui.label("Border size: ");
                 ui.add(egui::Slider::new(&mut args.border_size, 0..=10).text("value"));
             });
+
+            ui.allocate_space(egui::Vec2::new(1.0, 10.0));
+            ui.horizontal(|ui| {
+                if ui.button("Save").clicked() {
+                    write_fftargs_to_config(&args);
+                    app_state.display_str = format!("Saved to {:?}", config_path());
+                    app_state.stopwatch.start();
+                }
+                if ui.button("Reset").clicked() {
+                    *args = parse_cli_args();
+                    app_state.display_str = String::from("Reset to saved settings.");
+                    app_state.stopwatch.start();
+                    args.display_gui = true;
+                }
+                if ui.button("Reset to default").clicked() {
+                    *args = cli_args_to_fft_args(crate::args::CLIArgs::parse(), true);
+                    app_state.display_str = String::from("Reset to default settings.");
+                    app_state.stopwatch.start();
+                    args.display_gui = true;
+                }
+            });
+
+            if app_state.stopwatch.is_running() {
+                ui.label(&app_state.display_str);
+            }
+            if app_state.stopwatch.elapsed().as_secs() > 3 {
+                app_state.stopwatch.stop();
+                app_state.stopwatch.reset();
+            }
         });
     }
 }

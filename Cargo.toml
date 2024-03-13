@@ -1,6 +1,6 @@
 [package]
 name = "fftviz"
-version = "0.2.2"
+version = "0.3.0"
 edition = "2021"
 authors = ["Gursimar Singh <gursi26.dev@gmail.com>"]
 license = "MIT"
@@ -20,7 +20,10 @@ microfft = "0.5.1"
 rayon = "1.9.0"
 rodio = "0.17.3"
 serde = { version = "1.0.197", features = ["derive"] }
+dirs = "5.0.1"
+serde_yaml = "0.9.32"
 spectrum-analyzer = "1.5.0"
+stopwatch = "0.0.7"
 
 # [profile.release]
 # lto = true
