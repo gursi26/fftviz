@@ -1,8 +1,9 @@
 use dirs::home_dir;
-use std::{io::{stdout, Write}, path::PathBuf};
+use std::{io::{stdout, Read, Write}, path::PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
-use std::fs::{create_dir, create_dir_all, File, OpenOptions};
+use std::fs::{read_to_string, create_dir, create_dir_all, File, OpenOptions};
+use std::io::BufWriter;
 use bevy::prelude::Color;
 
 use crate::{CLIArgs, FFTArgs};
@@ -23,7 +24,7 @@ pub struct ConfigFFTArgs {
     pub min_freq: Option<f32>,
     pub max_freq: Option<f32>,
     pub display_gui: Option<bool>,
-    pub volume: Option<f32>,
+    pub volume: Option<u32>,
 }
 
 impl Default for ConfigFFTArgs {
@@ -43,7 +44,7 @@ impl Default for ConfigFFTArgs {
             min_freq: Some(0.0),
             max_freq: Some(5000.0),
             display_gui: Some(false),
-            volume: Some(0.5),
+            volume: Some(50),
         }
     }
 }
@@ -110,23 +111,67 @@ pub fn write_fftargs_to_config(args: &FFTArgs) {
     overwrite_non_default_args!(&mut default_args.volume, args.volume);
 
     let cfg_path = config_path();
-    create_dir_all(&cfg_path);
+    create_dir_all(cfg_path.as_path().parent().unwrap());
+
+    let mut config_file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .open(&cfg_path)
+        .expect("Could not open file.");
+    serde_yaml::to_writer(config_file, &default_args).unwrap();
+
+    let mut cfg_yaml: Vec<String> = read_to_string(&cfg_path) 
+        .unwrap()  // panic on possible file-reading errors
+        .lines()  // split the string into an iterator of string slices
+        .map(String::from)  // make each slice into a string
+        .collect();  // gather them together into a vector
+
+    cfg_yaml.retain(|x| x.contains(":"));
+
+    let f = File::open(&cfg_path).expect("Unable to create file");
+    let mut f = BufWriter::new(f);
+    f.write_all(cfg_yaml.join("\n").as_bytes()).expect("Unable to write data");
+}
+
+pub fn reset_config_file() {
+    let default_user_config = ConfigFFTArgs::default();
+
+    let cfg_path = config_path();
+    create_dir_all(cfg_path.as_path().parent().unwrap());
 
     let mut config_file = OpenOptions::new()
         .write(true)
         .create(true)
         .open(cfg_path)
         .expect("Could not open file.");
-    serde_yaml::to_writer(config_file, &default_args).unwrap();
+    serde_yaml::to_writer(config_file, &default_user_config).unwrap();
 }
 
-pub fn merge_config_with_cli_args(args: &mut CLIArgs) {
+pub fn merge_config_with_cli_args(args: &mut CLIArgs, use_default: bool) {
+    let default_user_config = ConfigFFTArgs::default();
     if !config_exists() {
+        update_cli_arg!(&mut args.background_color, None::<String>, default_user_config.background_color);
+        update_cli_arg!(&mut args.bar_color, None::<String>, default_user_config.bar_color);
+        update_cli_arg!(&mut args.border_color, None::<String>, default_user_config.border_color);
+        update_cli_arg!(&mut args.border_size, None::<i32>, default_user_config.border_size);
+        update_cli_arg!(&mut args.font_size, None::<i32>, default_user_config.font_size);
+        update_cli_arg!(&mut args.freq_resolution, None::<u32>, default_user_config.freq_resolution);
+        update_cli_arg!(&mut args.max_freq, None::<f32>, default_user_config.max_freq);
+        update_cli_arg!(&mut args.min_freq, None::<f32>, default_user_config.min_freq);
+        update_cli_arg!(&mut args.smoothness, None::<u32>, default_user_config.smoothness);
+        update_cli_arg!(&mut args.text_color, None::<String>, default_user_config.text_color);
+        update_cli_arg!(&mut args.volume, None::<u32>, default_user_config.volume);
+        update_cli_arg!(&mut args.window_width, None::<f32>, default_user_config.window_width);
+        update_cli_arg!(&mut args.window_height, None::<f32>, default_user_config.window_height);
         return;
     }
 
-    let user_config_yaml = read_config();
-    let default_user_config = ConfigFFTArgs::default();
+    let user_config_yaml: ConfigFFTArgs;
+    if use_default {
+        user_config_yaml = ConfigFFTArgs::default();
+    } else {
+        user_config_yaml = read_config();
+    }
 
     if let Some(x) = user_config_yaml.display_track_name {
         args.track_name = Some(x);

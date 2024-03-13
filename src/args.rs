@@ -28,7 +28,7 @@ pub struct CLIArgs {
 
     /// Volume
     #[arg(long = "volume", default_value = None)]
-    pub volume: Option<f32>,
+    pub volume: Option<u32>,
 
     /// Window width
     #[arg(long = "width", default_value = None)]
@@ -71,7 +71,7 @@ pub struct CLIArgs {
     pub background_color: Option<String>,
 }
 
-pub fn cli_args_to_fft_args(mut cli_args: CLIArgs) -> FFTArgs {
+pub fn cli_args_to_fft_args(mut cli_args: CLIArgs, use_default: bool) -> FFTArgs {
     if !Path::new(&cli_args.file_path).is_file() {
         println!("File \"{}\" not found!", cli_args.file_path);
         std::process::exit(1);
@@ -79,7 +79,7 @@ pub fn cli_args_to_fft_args(mut cli_args: CLIArgs) -> FFTArgs {
 
     // Merges cli args with args in config.yaml.
     // Precendence: Cli args > config.yaml args > default values
-    merge_config_with_cli_args(&mut cli_args);
+    merge_config_with_cli_args(&mut cli_args, use_default);
 
     bar_smoothness_constraint(cli_args.smoothness.unwrap());
     freq_resolution_constraint(cli_args.freq_resolution.unwrap());
@@ -107,7 +107,7 @@ pub fn cli_args_to_fft_args(mut cli_args: CLIArgs) -> FFTArgs {
 }
 
 pub fn parse_cli_args() -> FFTArgs {
-    cli_args_to_fft_args(args::CLIArgs::parse())
+    cli_args_to_fft_args(args::CLIArgs::parse(), false)
 }
 // Value constraints
 pub fn bar_smoothness_constraint(v: u32) { 

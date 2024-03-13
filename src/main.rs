@@ -65,7 +65,7 @@ struct FFTArgs {
     min_freq: f32,
     max_freq: f32,
     display_gui: bool,
-    volume: f32,
+    volume: u32,
     paused: bool,
     fft_fps: u32,
 }
@@ -173,7 +173,7 @@ fn main() {
     let source = Decoder::new(file).unwrap();
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let sink = rodio::Sink::try_new(&stream_handle).unwrap();
-    sink.set_volume(volume);
+    sink.set_volume(volume as f32 / 100.0);
     sink.append(source);
 
     app.insert_resource(AppState {

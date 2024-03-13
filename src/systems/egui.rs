@@ -1,4 +1,4 @@
-use crate::{write_fftargs_to_config, AppState, FFTArgs};
+use crate::{cli_args_to_fft_args, parse_cli_args, reset_config_file, write_fftargs_to_config, AppState, FFTArgs};
 use bevy::render::mesh::VertexAttributeValues;
 use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy::sprite::Anchor;
@@ -65,10 +65,14 @@ pub fn ui_example_system(
 
             ui.allocate_space(egui::Vec2::new(1.0, 10.0));
             ui.horizontal(|ui| {
-                if ui.button("Save settings").clicked() {
+                if ui.button("Save").clicked() {
                     write_fftargs_to_config(&args)
                 }
                 if ui.button("Reset").clicked() {
+                    *args = parse_cli_args();
+                }
+                if ui.button("Reset to default").clicked() {
+                    *args = cli_args_to_fft_args(crate::args::CLIArgs::parse(), true);
                 }
             });
         });
