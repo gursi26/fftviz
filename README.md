@@ -1,9 +1,10 @@
 # fftviz
 A lightweight, customizable FFT visualizer for audio files. Built with Rust + Bevy.
 
-![Screenshot-2024-03-04-at-24620AM](https://github.com/gursi26/fftviz/assets/75204369/9c2d919c-c28c-4021-84dd-64e86d57ae2f)
+![Presentation1](https://github.com/gursi26/fftviz/assets/75204369/590f0021-1aa3-44a1-9396-c0daf4af4080)
 
-![demo](https://github.com/gursi26/fftviz/assets/75204369/93b28c8f-d989-49c0-9ec3-dc3fbf7bb2ca)
+![demo](https://github.com/gursi26/fftviz/assets/75204369/9f78622f-705e-499f-a981-7aa110f0b2ca)
+
 
 # Installation
 
