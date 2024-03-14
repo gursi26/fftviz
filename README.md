@@ -42,40 +42,21 @@ Arguments:
   <FILE_PATH>  File path to Audio file
 
 Options:
-      --fft-fps <FFT_FPS>
-          Temporal resolution for FFT calculation (rendering always occurs at 60 fps with interpolation) [default: 12]
-      --smoothness <SMOOTHNESS>
-          Smoothing factor for spatial interpolation between bars [default: 1]
-      --freq-resolution <FREQ_RESOLUTION>
-          Number of individual frequencies detected by the FFT [default: 90]
-      --min-freq <MIN_FREQ>
-          Maximum frequency detected by FFT [default: 0]
-      --max-freq <MAX_FREQ>
-          Minimum frequency detected by FFT [default: 5000]
-      --volume <VOLUME>
-          Volume [default: 0.7]
-      --width <WINDOW_WIDTH>
-          Window width [default: 1000]
-      --height <WINDOW_HEIGHT>
-          Window height [default: 700]
-      --border-size <BORDER_SIZE>
-          Border size for each bar [default: 1]
-      --border-color <BORDER_COLOR>
-          Border color for each bar (in hex) [default: 000000]
-      --bar-color <BAR_COLOR>
-          Color for each bar (in hex) [default: FF0000]
-      --track-name
-          Use if you want track name to be printed
-      --display-gui
-          Use if you want the gui to be open when launched
-      --text-color <TEXT_COLOR>
-          Color for currently playing text (in hex) [default: FFFFFF]
-      --font-size <FONT_SIZE>
-          Font size of currently playing label [default: 25]
+      --smoothness <SMOOTHNESS>              Smoothing factor for spatial interpolation between bars
+      --freq-resolution <FREQ_RESOLUTION>    Number of individual frequencies detected by the FFT
+      --min-freq <MIN_FREQ>                  Maximum frequency detected by FFT
+      --max-freq <MAX_FREQ>                  Minimum frequency detected by FFT
+      --volume <VOLUME>                      Volume
+      --width <WINDOW_WIDTH>                 Window width
+      --height <WINDOW_HEIGHT>               Window height
+      --border-size <BORDER_SIZE>            Border size for each bar
+      --border-color <BORDER_COLOR>          Border color for each bar (in hex)
+      --bar-color <BAR_COLOR>                Color for each bar (in hex)
+      --track-name                           Use if you want track name to be printed
+      --display-gui                          Use if you want the gui to be open when launched
+      --text-color <TEXT_COLOR>              Color for currently playing text (in hex)
+      --font-size <FONT_SIZE>                Font size of currently playing label
       --background-color <BACKGROUND_COLOR>
-          [default: 000000]
-  -h, --help
-          Print help
-  -V, --version
-          Print version
+  -h, --help                                 Print help
+  -V, --version                              Print version
 ```
