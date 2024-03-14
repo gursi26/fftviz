@@ -33,10 +33,9 @@ use std::io::BufReader;
 use std::path::PathBuf;
 use std::time::Duration;
 
-// TODO : Add to other package managers
-// TODO : Add yaml config file for changing default settings
-// TODO : Add a button to gui to write current state to config file
-// TODO : Add a button to gui to reset to default 
+// TODO: Add to other package managers
+// TODO: Remove fft_fps and other deprecated configs from readme
+// TODO: Add intensity rescaling and other options to yaml
 
 // Constants
 const RENDERING_FPS: u32 = 60;
