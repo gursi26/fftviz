@@ -8,10 +8,13 @@ mod config;
 use args::*;
 use fft::*;
 use config::*;
+use stopwatch::Stopwatch;
 use systems::get_keyboard_input::*;
 use systems::egui::*;
 use systems::startup::*;
 use systems::update_fft::*;
+use systems::update_frame_counters;
+use systems::update_frame_counters::*;
 use systems::update_view_settings::*;
 
 use bevy::render::mesh::VertexAttributeValues;
@@ -22,7 +25,6 @@ use bevy::{
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
-use stopwatch::{Stopwatch};
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use clap::{ArgAction, Parser};
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
@@ -39,11 +41,13 @@ use std::time::Duration;
 
 // Constants
 const RENDERING_FPS: u32 = 60;
+const TIME_BETWEEN_FRAMES: f64 = 1.0 / RENDERING_FPS as f64;
 const RESCALING_THRESHOLDS: &[f32] = &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
 const INTENSITY_RESCALING: &[f32] = &[0.4, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5];
 const FREQ_RESCALING: &[f32] = &[0.9, 1.2, 1.2, 1.2, 1.0];
 const AVERAGING_WINDOW: u32 = 1;
 const FFT_FPS: u32 = 12;
+const TIME_BETWEEN_FFT_FRAMES: f64 = 1.0 / FFT_FPS as f64;
 
 const MIN_BAR_HEIGHT: f32 = 0.001;
 const MAX_BAR_HEIGHT: f32 = 0.45;
@@ -78,7 +82,9 @@ struct AppState {
     despawn_handles: Vec<Entity>,
     total_frame_counter: usize,
     fft_frame_counter: usize,
-    stopwatch: Stopwatch,
+    song_stopwatch: Stopwatch,
+    update_fft_counter: bool,
+    display_str_stopwatch: Stopwatch,
     display_str: String,
 }
 
@@ -160,13 +166,14 @@ fn main() {
 
         // Insert systems
         .add_systems(Startup, startup)
-        .add_systems(Update, ui_example_system)
         .add_systems(
             Update,
-            (update_fft.run_if(bevy::time::common_conditions::on_timer(
+            (update_frame_counters.run_if(bevy::time::common_conditions::on_timer(
                 Duration::from_secs_f64(1.0 / RENDERING_FPS as f64),
             )),),
         )
+        .add_systems(Update, update_fft)
+        .add_systems(Update, ui_example_system)
         .add_systems(Update, get_keyboard_input)
         .add_systems(Update, update_view_settings);
 
@@ -185,8 +192,10 @@ fn main() {
         despawn_handles: Vec::new(),
         fft_frame_counter: 0,
         total_frame_counter: 0,
-        stopwatch: Stopwatch::new(),
+        song_stopwatch: Stopwatch::start_new(),
+        display_str_stopwatch: Stopwatch::new(),
         display_str: String::new(),
+        update_fft_counter: false,
     });
 
     app.run();

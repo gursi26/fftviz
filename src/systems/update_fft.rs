@@ -29,22 +29,22 @@ pub fn update_fft(
     mut text_query: Query<&mut Text>,
 ) {
     let h = window.single_mut().height();
-    let mut update_i = false;
+    app_state.update_fft_counter = false;
     let interval = RENDERING_FPS / args.fft_fps;
 
     // Get the current frame (either from fft or interpolation)
-    let clamped_frame_counter = app_state.fft_frame_counter.clamp(0, app_state.fft.len() - 1);
+    let clamped_frame_counter = app_state.fft_frame_counter.clamp(0, app_state.fft.len() - 2);
     let curr_fft = match app_state.total_frame_counter as u32 % interval {
         0 => {
             if app_state.fft_frame_counter > app_state.fft.len() {
                 std::process::exit(0);
             }
-            update_i = true;
+            app_state.update_fft_counter = true;
             app_state.fft[clamped_frame_counter].clone()
         }
         rem => time_interpolate(
-            &(app_state.fft[clamped_frame_counter - 1]),
             &(app_state.fft[clamped_frame_counter]),
+            &(app_state.fft[clamped_frame_counter + 1]),
             rem as f32 / interval as f32,
         ),
     };
@@ -82,13 +82,5 @@ pub fn update_fft(
             }
             _ => {}
         }
-    }
-
-    // Moves real frame and interpolated frame counters
-    if !args.paused {
-        if update_i {
-            app_state.fft_frame_counter += 1;
-        }
-        app_state.total_frame_counter += 1;
     }
 }
