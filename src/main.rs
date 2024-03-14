@@ -166,12 +166,7 @@ fn main() {
 
         // Insert systems
         .add_systems(Startup, startup)
-        .add_systems(
-            Update,
-            (update_frame_counters.run_if(bevy::time::common_conditions::on_timer(
-                Duration::from_secs_f64(1.0 / RENDERING_FPS as f64),
-            )),),
-        )
+        .add_systems(Update, update_frame_counters)
         .add_systems(Update, update_fft)
         .add_systems(Update, ui_example_system)
         .add_systems(Update, get_keyboard_input)
