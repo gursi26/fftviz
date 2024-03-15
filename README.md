@@ -43,21 +43,40 @@ Arguments:
   <FILE_PATH>  File path to Audio file
 
 Options:
-      --smoothness <SMOOTHNESS>              Smoothing factor for spatial interpolation between bars
-      --freq-resolution <FREQ_RESOLUTION>    Number of individual frequencies detected by the FFT
-      --min-freq <MIN_FREQ>                  Maximum frequency detected by FFT
-      --max-freq <MAX_FREQ>                  Minimum frequency detected by FFT
-      --volume <VOLUME>                      Volume
-      --width <WINDOW_WIDTH>                 Window width
-      --height <WINDOW_HEIGHT>               Window height
-      --border-size <BORDER_SIZE>            Border size for each bar
-      --border-color <BORDER_COLOR>          Border color for each bar (in hex)
-      --bar-color <BAR_COLOR>                Color for each bar (in hex)
-      --track-name                           Use if you want track name to be printed
-      --display-gui                          Use if you want the gui to be open when launched
-      --text-color <TEXT_COLOR>              Color for currently playing text (in hex)
-      --font-size <FONT_SIZE>                Font size of currently playing label
+      --smoothness <SMOOTHNESS>
+          Smoothing factor for spatial interpolation between bars
+      --freq-resolution <FREQ_RESOLUTION>
+          Number of individual frequencies detected by the FFT
+      --min-freq <MIN_FREQ>
+          Maximum frequency detected by FFT
+      --max-freq <MAX_FREQ>
+          Minimum frequency detected by FFT
+      --volume <VOLUME>
+          Volume
+      --width <WINDOW_WIDTH>
+          Window width
+      --height <WINDOW_HEIGHT>
+          Window height
+      --border-size <BORDER_SIZE>
+          Border size for each bar
+      --border-color <BORDER_COLOR>
+          Border color for each bar (in hex)
+      --bar-color <BAR_COLOR>
+          Color for each bar (in hex)
+      --track-name
+          Use if you want track name to be printed
+      --display-gui
+          Use if you want the gui to be open when launched
+      --debug
+          Use if you want to display debug information when launching
+      --text-color <TEXT_COLOR>
+          Color for currently playing text (in hex)
+      --font-size <FONT_SIZE>
+          Font size of currently playing label
       --background-color <BACKGROUND_COLOR>
-  -h, --help                                 Print help
-  -V, --version                              Print version
+
+  -h, --help
+          Print help
+  -V, --version
+          Print version
 ```

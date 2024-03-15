@@ -58,6 +58,10 @@ pub struct CLIArgs {
     #[arg(long = "display-gui", action = ArgAction::SetTrue)]
     pub display_gui: Option<bool>,
 
+    /// Use if you want to display debug information when launching
+    #[arg(long = "debug", action = ArgAction::SetTrue)]
+    pub debug: Option<bool>,
+
     /// Color for currently playing text (in hex)
     #[arg(long = "text-color", default_value = None)]
     pub text_color: Option<String>,
@@ -101,6 +105,7 @@ pub fn cli_args_to_fft_args(mut cli_args: CLIArgs, use_default: bool) -> FFTArgs
         max_freq: cli_args.max_freq.unwrap(),
         display_gui: cli_args.display_gui.unwrap(),
         volume: cli_args.volume.unwrap(),
+        debug: cli_args.debug.unwrap(),
     }
 }
 

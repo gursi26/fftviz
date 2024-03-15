@@ -56,8 +56,10 @@ pub fn update_fft(
             .unwrap()
             .attribute_mut(Mesh::ATTRIBUTE_POSITION)
             .unwrap();
-        let bar_value_1 =
-            (new_value.clone() * (h / 2.0) as f32).clamp(h * MIN_BAR_HEIGHT, h * MAX_BAR_HEIGHT);
+        let bar_value_1 = (new_value.clone() * (h / 2.0) as f32).clamp(
+            h * MIN_BAR_HEIGHT + args.border_size as f32,
+            h * MAX_BAR_HEIGHT + args.border_size as f32,
+        );
         match dims {
             VertexAttributeValues::Float32x3(x) => {
                 x[0][1] = bar_value_1;
