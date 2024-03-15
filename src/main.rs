@@ -36,19 +36,20 @@ use std::time::Duration;
 use std::time::Instant;
 
 // TODO: Add to other package managers
-// TODO: Remove fft_fps and other deprecated configs from readme
-// TODO: Add intensity rescaling and other options to yaml
 
-// Constants
+// Timing related constants
 const RENDERING_FPS: u32 = 60;
 const TIME_BETWEEN_FRAMES: f64 = 1.0 / RENDERING_FPS as f64;
-const RESCALING_THRESHOLDS: &[f32] = &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
-const INTENSITY_RESCALING: &[f32] = &[0.4, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5];
-const FREQ_RESCALING: &[f32] = &[0.9, 1.2, 1.2, 1.2, 1.0];
-const AVERAGING_WINDOW: u32 = 1;
 const FFT_FPS: u32 = 12;
 const TIME_BETWEEN_FFT_FRAMES: f64 = 1.0 / FFT_FPS as f64;
 
+// Normalization constants
+const AVERAGING_WINDOW: u32 = 1;
+const RESCALING_THRESHOLDS: &[f32] = &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
+const INTENSITY_RESCALING: &[f32] = &[0.4, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5];
+const FREQ_RESCALING: &[f32] = &[0.9, 1.2, 1.2, 1.2, 1.0];
+
+// Bar height clamps
 const MIN_BAR_HEIGHT: f32 = 0.001;
 const MAX_BAR_HEIGHT: f32 = 0.45;
 
@@ -69,6 +70,7 @@ struct FFTArgs {
     min_freq: f32,
     max_freq: f32,
     display_gui: bool,
+    debug: bool,
     volume: u32,
 }
 
@@ -93,7 +95,7 @@ struct FFTState {
 }
 
 fn compute_and_preprocess_fft(fp: &PathBuf, args: &FFTArgs) -> Vec<Vec<f32>> {
-    println!("Computing FFT...");
+    let now = Instant::now();
     let mut fft = compute_fft(
         fp,
         FFT_FPS,
@@ -102,12 +104,20 @@ fn compute_and_preprocess_fft(fp: &PathBuf, args: &FFTArgs) -> Vec<Vec<f32>> {
         args.max_freq,
     );
 
+    if args.debug {
+        println!("Computed FFT in {:?}", now.elapsed());
+    }
+
+    let now = Instant::now();
     fft = smooth_fft(fft, AVERAGING_WINDOW);
     fft = intensity_normalize_fft(fft, RESCALING_THRESHOLDS, INTENSITY_RESCALING);
     fft = frequency_normalize_fft(fft, FREQ_RESCALING);
+    if args.debug {
+        println!("Normalized in {:?}", now.elapsed());
+    }
 
+    let now = Instant::now();
     let mut fft_vec = fft.fft;
-
     // Reverses bar order and prepends
     for c in fft_vec.iter_mut() {
         let mut reversed = c.clone();
@@ -119,20 +129,24 @@ fn compute_and_preprocess_fft(fp: &PathBuf, args: &FFTArgs) -> Vec<Vec<f32>> {
     fft_vec
         .par_iter_mut()
         .for_each(|x| space_interpolate(x, args.smoothness));
+    if args.debug {
+        println!("Interpolated in {:?}", now.elapsed());
+    }
 
     fft_vec
 }
 
 fn main() {
-    std::env::set_var("RUST_LOG", "none");
-
     // Parse CLI args
     let args = parse_cli_args();
     let fp = PathBuf::from(OsString::from(&args.file_path));
 
+    if !args.debug {
+        std::env::set_var("RUST_LOG", "none");
+    }
+
     // Compute and preprocess FFT (spatial + temporal interpolation and normalization)
     let fft_vec = compute_and_preprocess_fft(&fp, &args);
-
     let volume = args.volume;
 
     // Initialize Bevy app
@@ -180,7 +194,7 @@ fn main() {
     sink.set_volume(volume as f32 / 100.0);
     sink.append(source);
 
-    // Start stopwatch that keeps fft in sync
+    // Start timer that keeps fft in sync
     let fft_timer = Instant::now();
 
     app.insert_resource(AppState {
