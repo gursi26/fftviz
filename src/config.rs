@@ -29,6 +29,7 @@ pub struct ConfigFFTArgs {
     pub max_freq: Option<f32>,
     pub display_gui: Option<bool>,
     pub volume: Option<u32>,
+    pub title_bar: Option<bool>,
 }
 
 impl Default for ConfigFFTArgs {
@@ -49,6 +50,7 @@ impl Default for ConfigFFTArgs {
             max_freq: Some(5000.0),
             display_gui: Some(false),
             volume: Some(50),
+            title_bar: Some(true),
         }
     }
 }
@@ -80,6 +82,16 @@ macro_rules! update_cli_arg {
                 *$cli_arg = $default_config_arg;
             } else {
                 *$cli_arg = $config_arg;
+            }
+        }
+    };
+}
+
+macro_rules! update_boolean_cli_arg {
+    ($cli_arg: expr, $default_arg: expr, $config_arg: expr) => {
+        if $cli_arg.unwrap() == $default_arg.unwrap() {
+            if let Some(x) = $config_arg {
+                *$cli_arg = Some(x);
             }
         }
     };
@@ -134,6 +146,7 @@ pub fn write_fftargs_to_config(args: &FFTArgs) {
     overwrite_non_default_args!(&mut default_args.min_freq, args.min_freq);
     overwrite_non_default_args!(&mut default_args.max_freq, args.max_freq);
     overwrite_non_default_args!(&mut default_args.volume, args.volume);
+    overwrite_non_default_args!(&mut default_args.title_bar, args.title_bar);
 
     let cfg_path = config_path();
     create_dir_all(cfg_path.as_path().parent().unwrap()).unwrap();
@@ -146,10 +159,10 @@ pub fn write_fftargs_to_config(args: &FFTArgs) {
     serde_yaml::to_writer(config_file, &default_args).unwrap();
 
     let mut cfg_yaml: Vec<String> = read_to_string(&cfg_path)
-        .unwrap() // panic on possible file-reading errors
-        .lines() // split the string into an iterator of string slices
-        .map(String::from) // make each slice into a string
-        .collect(); // gather them together into a vector
+        .unwrap() 
+        .lines() 
+        .map(String::from)
+        .collect(); 
 
     cfg_yaml.retain(|x| x.contains(":"));
 
@@ -240,6 +253,11 @@ pub fn merge_config_with_cli_args(args: &mut CLIArgs, use_default: bool) {
             None::<f32>,
             default_user_config.window_height
         );
+        update_cli_arg!(
+            &mut args.title_bar,
+            None::<bool>,
+            default_user_config.title_bar
+        );
         return;
     }
 
@@ -250,12 +268,9 @@ pub fn merge_config_with_cli_args(args: &mut CLIArgs, use_default: bool) {
         user_config_yaml = read_config();
     }
 
-    if let Some(x) = user_config_yaml.display_track_name {
-        args.track_name = Some(x);
-    }
-    if let Some(x) = user_config_yaml.display_gui {
-        args.display_gui = Some(x);
-    }
+    update_boolean_cli_arg!(&mut args.track_name, default_user_config.display_track_name, user_config_yaml.display_track_name);
+    update_boolean_cli_arg!(&mut args.display_gui, default_user_config.display_gui, user_config_yaml.display_gui);
+    update_boolean_cli_arg!(&mut args.title_bar, default_user_config.title_bar, user_config_yaml.title_bar);
 
     update_cli_arg!(
         &mut args.background_color,
