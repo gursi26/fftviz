@@ -175,6 +175,7 @@ fn main() {
     let sink = rodio::Sink::try_new(&stream_handle).unwrap();
     sink.set_volume(volume as f32 / 100.0);
     sink.append(source);
+    let song_stopwatch = Stopwatch::start_new();
 
     app.insert_resource(AppState {
         sink,
@@ -183,7 +184,7 @@ fn main() {
         despawn_handles: Vec::new(),
         fft_frame_counter: 0,
         total_frame_counter: 0,
-        song_stopwatch: Stopwatch::start_new(),
+        song_stopwatch,
         display_str_stopwatch: Stopwatch::new(),
         display_str: String::new(),
         update_fft_counter: false,
