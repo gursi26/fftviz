@@ -1,4 +1,4 @@
-use crate::{AppState, FFTArgs};
+use crate::{AppState, FFTArgs, FFTState};
 use bevy::{
     app::AppExit,
     prelude::*,
@@ -8,6 +8,7 @@ pub fn get_keyboard_input(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut exit: EventWriter<AppExit>,
     mut app_state: ResMut<AppState>,
+    mut fft_state: ResMut<FFTState>,
     mut args: ResMut<FFTArgs>,
 ) {
     if keyboard_input.just_pressed(KeyCode::KeyQ) {
@@ -20,8 +21,10 @@ pub fn get_keyboard_input(
         app_state.paused = !app_state.paused;
         if app_state.sink.is_paused() {
             app_state.sink.play();
+            fft_state.fft_timer.start();
         } else {
             app_state.sink.pause();
+            fft_state.fft_timer.stop();
         }
     }
     if keyboard_input.just_pressed(KeyCode::ArrowUp) {

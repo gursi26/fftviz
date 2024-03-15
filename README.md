@@ -69,6 +69,8 @@ Options:
           Use if you want the gui to be open when launched
       --debug
           Use if you want to display debug information when launching
+      --no-title-bar
+          Use to disable the title bar
       --text-color <TEXT_COLOR>
           Color for currently playing text (in hex)
       --font-size <FONT_SIZE>

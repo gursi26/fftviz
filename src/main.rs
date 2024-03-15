@@ -24,6 +24,7 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 // TODO: Add to other package managers
+// TODO: Clean up config and cli arg handling
 
 // Timing related constants
 const RENDERING_FPS: u32 = 60;
@@ -58,6 +59,7 @@ struct FFTArgs {
     min_freq: f32,
     max_freq: f32,
     display_gui: bool,
+    title_bar: bool,
     debug: bool,
     volume: u32,
 }
@@ -79,7 +81,7 @@ struct FFTState {
     despawn_handles: Vec<Entity>,
     total_frame_counter: usize,
     fft_frame_counter: usize,
-    fft_timer: Instant,
+    fft_timer: stopwatch::Stopwatch,
 }
 
 fn compute_and_preprocess_fft(fp: &PathBuf, args: &FFTArgs) -> Vec<Vec<f32>> {
@@ -150,6 +152,7 @@ fn main() {
                     )
                     .into(),
                     name: Some("fftviz".into()),
+                    decorations: args.title_bar,
                     resolution: (args.window_width as f32, args.window_height as f32).into(),
                     prevent_default_event_handling: false,
                     enabled_buttons: bevy::window::EnabledButtons {
@@ -183,7 +186,7 @@ fn main() {
     sink.append(source);
 
     // Start timer that keeps fft in sync
-    let fft_timer = Instant::now();
+    let fft_timer = stopwatch::Stopwatch::start_new();
 
     app.insert_resource(AppState {
         sink,
