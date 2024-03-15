@@ -33,18 +33,16 @@ pub fn update_fft(
     let interval = RENDERING_FPS / args.fft_fps;
 
     // Get the current frame (either from fft or interpolation)
-    let clamped_frame_counter = app_state.fft_frame_counter.clamp(0, app_state.fft.len() - 2);
     let curr_fft = match app_state.total_frame_counter as u32 % interval {
         0 => {
-            if app_state.fft_frame_counter > app_state.fft.len() {
+            if app_state.fft_frame_counter >= app_state.fft.len() - 1 {
                 std::process::exit(0);
             }
-            app_state.update_fft_counter = true;
-            app_state.fft[clamped_frame_counter].clone()
+            app_state.fft[app_state.fft_frame_counter].clone()
         }
         rem => time_interpolate(
-            &(app_state.fft[clamped_frame_counter]),
-            &(app_state.fft[clamped_frame_counter + 1]),
+            &(app_state.fft[app_state.fft_frame_counter]),
+            &(app_state.fft[app_state.fft_frame_counter + 1]),
             rem as f32 / interval as f32,
         ),
     };
@@ -70,7 +68,11 @@ pub fn update_fft(
             _ => {}
         }
 
-        let dims = meshes.get_mut(handle2).unwrap().attribute_mut(Mesh::ATTRIBUTE_POSITION).unwrap();
+        let dims = meshes
+            .get_mut(handle2)
+            .unwrap()
+            .attribute_mut(Mesh::ATTRIBUTE_POSITION)
+            .unwrap();
         let bar_value_2 = (new_value.clone() * (h / 2.0) as f32 - args.border_size as f32)
             .clamp(h * MIN_BAR_HEIGHT, h * MAX_BAR_HEIGHT);
         match dims {

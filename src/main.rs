@@ -1,16 +1,16 @@
 #![allow(unused)]
 
 mod args;
+mod config;
 mod fft;
 mod systems;
-mod config;
 
 use args::*;
-use fft::*;
 use config::*;
+use fft::*;
 use stopwatch::Stopwatch;
-use systems::get_keyboard_input::*;
 use systems::egui::*;
+use systems::get_keyboard_input::*;
 use systems::startup::*;
 use systems::update_fft::*;
 use systems::update_frame_counters;
@@ -18,13 +18,13 @@ use systems::update_frame_counters::*;
 use systems::update_view_settings::*;
 
 use bevy::render::mesh::VertexAttributeValues;
-use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy::sprite::Anchor;
 use bevy::{
     app::AppExit,
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
+use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use clap::{ArgAction, Parser};
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
@@ -88,7 +88,6 @@ struct AppState {
     display_str: String,
 }
 
-
 fn compute_and_preprocess_fft(fp: &PathBuf, args: &FFTArgs) -> Vec<Vec<f32>> {
     println!("Computing FFT...");
     let mut fft = compute_fft(
@@ -135,7 +134,6 @@ fn main() {
     // Initialize Bevy app
     let mut binding = App::new();
     let app = binding
-
         // Insert plugins
         .add_plugins(
             DefaultPlugins.set(WindowPlugin {
@@ -159,11 +157,9 @@ fn main() {
             }),
         )
         .add_plugins(EguiPlugin)
-
         // Insert resources
         .insert_resource(ClearColor(args.background_color))
         .insert_resource(args)
-
         // Insert systems
         .add_systems(Startup, startup)
         .add_systems(Update, update_frame_counters)
@@ -195,4 +191,3 @@ fn main() {
 
     app.run();
 }
-
