@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 mod args;
 mod config;
 mod fft;
@@ -12,27 +10,17 @@ use systems::egui::*;
 use systems::get_keyboard_input::*;
 use systems::startup::*;
 use systems::update_fft::*;
-use systems::update_frame_counters;
 use systems::update_frame_counters::*;
 use systems::update_view_settings::*;
 
-use bevy::render::mesh::VertexAttributeValues;
-use bevy::sprite::Anchor;
-use bevy::{
-    app::AppExit,
-    prelude::*,
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
-};
-use bevy_egui::egui::{Align2, Color32, Stroke};
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
-use clap::{ArgAction, Parser};
+use bevy::prelude::*;
+use bevy_egui::EguiPlugin;
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-use rodio::{source::Source, Decoder, OutputStream};
+use rodio::{Decoder, OutputStream};
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
-use std::time::Duration;
 use std::time::Instant;
 
 // TODO: Add to other package managers

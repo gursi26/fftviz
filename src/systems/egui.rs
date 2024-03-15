@@ -1,29 +1,15 @@
 use crate::{
-    cli_args_to_fft_args, config_path, parse_cli_args, reset_config_file, write_fftargs_to_config,
+    cli_args_to_fft_args, config_path, parse_cli_args, write_fftargs_to_config,
     AppState, FFTArgs, FFTState,
 };
-use bevy::render::mesh::VertexAttributeValues;
-use bevy::sprite::Anchor;
-use bevy::{
-    app::AppExit,
-    prelude::*,
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
-};
-use bevy_egui::egui::{Align2, Color32, Stroke};
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
-use clap::{ArgAction, Parser};
-use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-use rodio::{source::Source, Decoder, OutputStream};
-use std::ffi::OsString;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::PathBuf;
-use std::time::Duration;
+use bevy::prelude::*;
+use bevy_egui::egui::Align2;
+use bevy_egui::{egui, EguiContexts};
+use clap::Parser;
 
 pub fn ui_example_system(
     mut contexts: EguiContexts,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut fft_state: ResMut<FFTState>,
+    fft_state: ResMut<FFTState>,
     mut app_state: ResMut<AppState>,
     mut args: ResMut<FFTArgs>,
 ) {

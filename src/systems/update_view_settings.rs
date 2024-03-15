@@ -1,30 +1,13 @@
-use crate::fft::time_interpolate;
 use crate::*;
 use bevy::render::mesh::VertexAttributeValues;
-use bevy::sprite::{Anchor, Material2d};
-use bevy::{
-    app::AppExit,
-    prelude::*,
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
-};
-use bevy_egui::egui::{Align2, Color32, Stroke};
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
-use clap::{ArgAction, Parser};
-use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-use rodio::{source::Source, Decoder, OutputStream};
-use std::ffi::OsString;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::PathBuf;
-use std::time::Duration;
+use bevy::prelude::*;
 
 pub fn update_view_settings(
-    mut commands: Commands,
     mut window: Query<&mut Window>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    mut app_state: ResMut<FFTState>,
-    mut args: ResMut<FFTArgs>,
+    app_state: Res<FFTState>,
+    args: Res<FFTArgs>,
     mut clear_color: ResMut<ClearColor>,
     mut text_query: Query<(&mut Transform, &mut Text)>,
     mut differencing_args_query: Query<&mut FFTArgs>,
