@@ -23,34 +23,32 @@ pub fn update_fft(
     mut window: Query<&mut Window>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut fft_state: ResMut<FFTState>,
     mut app_state: ResMut<AppState>,
     mut args: ResMut<FFTArgs>,
     mut clear_color: ResMut<ClearColor>,
     mut text_query: Query<&mut Text>,
 ) {
     let h = window.single_mut().height();
-    let mut update_i = false;
-    let interval = RENDERING_FPS / args.fft_fps;
+    let interval = app_state.rendering_fps / app_state.fft_fps;
 
     // Get the current frame (either from fft or interpolation)
-    let clamped_frame_counter = app_state.fft_frame_counter.clamp(0, app_state.fft.len() - 1);
-    let curr_fft = match app_state.total_frame_counter as u32 % interval {
+    let curr_fft = match fft_state.total_frame_counter as u32 % interval {
         0 => {
-            if app_state.fft_frame_counter > app_state.fft.len() {
+            if fft_state.fft_frame_counter >= fft_state.fft.len() - 1 {
                 std::process::exit(0);
             }
-            update_i = true;
-            app_state.fft[clamped_frame_counter].clone()
+            fft_state.fft[fft_state.fft_frame_counter].clone()
         }
         rem => time_interpolate(
-            &(app_state.fft[clamped_frame_counter - 1]),
-            &(app_state.fft[clamped_frame_counter]),
+            &(fft_state.fft[fft_state.fft_frame_counter]),
+            &(fft_state.fft[fft_state.fft_frame_counter + 1]),
             rem as f32 / interval as f32,
         ),
     };
 
     // Iterate through all currently displayed bars to change values
-    for (handle, new_value) in app_state.curr_bars.chunks(2).zip(curr_fft.iter()) {
+    for (handle, new_value) in fft_state.curr_bars.chunks(2).zip(curr_fft.iter()) {
         let (handle1, handle2) = (handle[0].0.clone_weak(), handle[1].0.clone_weak());
 
         let dims = meshes
@@ -70,7 +68,11 @@ pub fn update_fft(
             _ => {}
         }
 
-        let dims = meshes.get_mut(handle2).unwrap().attribute_mut(Mesh::ATTRIBUTE_POSITION).unwrap();
+        let dims = meshes
+            .get_mut(handle2)
+            .unwrap()
+            .attribute_mut(Mesh::ATTRIBUTE_POSITION)
+            .unwrap();
         let bar_value_2 = (new_value.clone() * (h / 2.0) as f32 - args.border_size as f32)
             .clamp(h * MIN_BAR_HEIGHT, h * MAX_BAR_HEIGHT);
         match dims {
@@ -82,13 +84,5 @@ pub fn update_fft(
             }
             _ => {}
         }
-    }
-
-    // Moves real frame and interpolated frame counters
-    if !args.paused {
-        if update_i {
-            app_state.fft_frame_counter += 1;
-        }
-        app_state.total_frame_counter += 1;
     }
 }

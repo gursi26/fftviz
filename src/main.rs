@@ -1,28 +1,29 @@
 #![allow(unused)]
 
 mod args;
+mod config;
 mod fft;
 mod systems;
-mod config;
 
 use args::*;
-use fft::*;
 use config::*;
-use systems::get_keyboard_input::*;
+use fft::*;
 use systems::egui::*;
+use systems::get_keyboard_input::*;
 use systems::startup::*;
 use systems::update_fft::*;
+use systems::update_frame_counters;
+use systems::update_frame_counters::*;
 use systems::update_view_settings::*;
 
 use bevy::render::mesh::VertexAttributeValues;
-use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy::sprite::Anchor;
 use bevy::{
     app::AppExit,
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
-use stopwatch::{Stopwatch};
+use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use clap::{ArgAction, Parser};
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
@@ -32,6 +33,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 use std::time::Duration;
+use std::time::Instant;
 
 // TODO: Add to other package managers
 // TODO: Remove fft_fps and other deprecated configs from readme
@@ -39,11 +41,13 @@ use std::time::Duration;
 
 // Constants
 const RENDERING_FPS: u32 = 60;
+const TIME_BETWEEN_FRAMES: f64 = 1.0 / RENDERING_FPS as f64;
 const RESCALING_THRESHOLDS: &[f32] = &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
 const INTENSITY_RESCALING: &[f32] = &[0.4, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5];
 const FREQ_RESCALING: &[f32] = &[0.9, 1.2, 1.2, 1.2, 1.0];
 const AVERAGING_WINDOW: u32 = 1;
 const FFT_FPS: u32 = 12;
+const TIME_BETWEEN_FFT_FRAMES: f64 = 1.0 / FFT_FPS as f64;
 
 const MIN_BAR_HEIGHT: f32 = 0.001;
 const MAX_BAR_HEIGHT: f32 = 0.45;
@@ -66,28 +70,33 @@ struct FFTArgs {
     max_freq: f32,
     display_gui: bool,
     volume: u32,
-    paused: bool,
-    fft_fps: u32,
 }
 
 #[derive(Resource)]
 struct AppState {
     sink: rodio::Sink,
+    display_str: String,
+    display_start_time: f64,
+    paused: bool,
+    fft_fps: u32,
+    rendering_fps: u32,
+}
+
+#[derive(Resource)]
+struct FFTState {
     fft: Vec<Vec<f32>>,
     curr_bars: Vec<(Handle<Mesh>, Handle<ColorMaterial>)>,
     despawn_handles: Vec<Entity>,
     total_frame_counter: usize,
     fft_frame_counter: usize,
-    stopwatch: Stopwatch,
-    display_str: String,
+    fft_timer: Instant,
 }
-
 
 fn compute_and_preprocess_fft(fp: &PathBuf, args: &FFTArgs) -> Vec<Vec<f32>> {
     println!("Computing FFT...");
     let mut fft = compute_fft(
         fp,
-        args.fft_fps,
+        FFT_FPS,
         args.freq_resolution,
         args.min_freq,
         args.max_freq,
@@ -129,7 +138,6 @@ fn main() {
     // Initialize Bevy app
     let mut binding = App::new();
     let app = binding
-
         // Insert plugins
         .add_plugins(
             DefaultPlugins.set(WindowPlugin {
@@ -153,20 +161,14 @@ fn main() {
             }),
         )
         .add_plugins(EguiPlugin)
-
         // Insert resources
         .insert_resource(ClearColor(args.background_color))
         .insert_resource(args)
-
         // Insert systems
         .add_systems(Startup, startup)
+        .add_systems(Update, update_frame_counters)
+        .add_systems(Update, update_fft)
         .add_systems(Update, ui_example_system)
-        .add_systems(
-            Update,
-            (update_fft.run_if(bevy::time::common_conditions::on_timer(
-                Duration::from_secs_f64(1.0 / RENDERING_FPS as f64),
-            )),),
-        )
         .add_systems(Update, get_keyboard_input)
         .add_systems(Update, update_view_settings);
 
@@ -178,17 +180,25 @@ fn main() {
     sink.set_volume(volume as f32 / 100.0);
     sink.append(source);
 
+    // Start stopwatch that keeps fft in sync
+    let fft_timer = Instant::now();
+
     app.insert_resource(AppState {
         sink,
+        display_str: String::new(),
+        display_start_time: 0.0,
+        paused: false,
+        fft_fps: FFT_FPS,
+        rendering_fps: RENDERING_FPS,
+    })
+    .insert_resource(FFTState {
         fft: fft_vec,
         curr_bars: Vec::new(),
         despawn_handles: Vec::new(),
         fft_frame_counter: 0,
         total_frame_counter: 0,
-        stopwatch: Stopwatch::new(),
-        display_str: String::new(),
+        fft_timer,
     });
 
     app.run();
 }
-

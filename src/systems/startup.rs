@@ -1,12 +1,12 @@
-use crate::{AppState, FFTArgs};
+use crate::{FFTArgs, FFTState};
 use bevy::render::mesh::VertexAttributeValues;
-use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy::sprite::Anchor;
 use bevy::{
     app::AppExit,
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
+use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use clap::{ArgAction, Parser};
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
@@ -16,7 +16,6 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 use std::time::Duration;
-
 
 fn spawn_bars(
     num_bars: u32,
@@ -75,7 +74,7 @@ pub fn startup(
     mut window: Query<&mut Window>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    mut fft_queue: ResMut<AppState>,
+    mut fft_queue: ResMut<FFTState>,
     clear_color: Res<ClearColor>,
     args: Res<FFTArgs>,
 ) {

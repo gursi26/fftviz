@@ -23,7 +23,6 @@ serde = { version = "1.0.197", features = ["derive"] }
 dirs = "5.0.1"
 serde_yaml = "0.9.32"
 spectrum-analyzer = "1.5.0"
-stopwatch = "0.0.7"
 
 [profile.release]
 strip = true  

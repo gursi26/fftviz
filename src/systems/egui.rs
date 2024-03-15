@@ -1,12 +1,15 @@
-use crate::{cli_args_to_fft_args, config_path, parse_cli_args, reset_config_file, write_fftargs_to_config, AppState, FFTArgs};
+use crate::{
+    cli_args_to_fft_args, config_path, parse_cli_args, reset_config_file, write_fftargs_to_config,
+    AppState, FFTArgs, FFTState,
+};
 use bevy::render::mesh::VertexAttributeValues;
-use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy::sprite::Anchor;
 use bevy::{
     app::AppExit,
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
+use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use clap::{ArgAction, Parser};
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
@@ -17,10 +20,10 @@ use std::io::BufReader;
 use std::path::PathBuf;
 use std::time::Duration;
 
-
 pub fn ui_example_system(
     mut contexts: EguiContexts,
     keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut fft_state: ResMut<FFTState>,
     mut app_state: ResMut<AppState>,
     mut args: ResMut<FFTArgs>,
 ) {
@@ -68,28 +71,25 @@ pub fn ui_example_system(
                 if ui.button("Save").clicked() {
                     write_fftargs_to_config(&args);
                     app_state.display_str = format!("Saved to {:?}", config_path());
-                    app_state.stopwatch.start();
+                    app_state.display_start_time = fft_state.fft_timer.elapsed().as_secs_f64();
                 }
                 if ui.button("Reset").clicked() {
                     *args = parse_cli_args();
                     app_state.display_str = String::from("Reset to saved settings.");
-                    app_state.stopwatch.start();
+                    app_state.display_start_time = fft_state.fft_timer.elapsed().as_secs_f64();
                     args.display_gui = true;
                 }
                 if ui.button("Reset to default").clicked() {
                     *args = cli_args_to_fft_args(crate::args::CLIArgs::parse(), true);
                     app_state.display_str = String::from("Reset to default settings.");
-                    app_state.stopwatch.start();
+                    app_state.display_start_time = fft_state.fft_timer.elapsed().as_secs_f64();
                     args.display_gui = true;
                 }
             });
 
-            if app_state.stopwatch.is_running() {
-                ui.label(&app_state.display_str);
-            }
-            if app_state.stopwatch.elapsed().as_secs() > 3 {
-                app_state.stopwatch.stop();
-                app_state.stopwatch.reset();
+            ui.label(&app_state.display_str);
+            if fft_state.fft_timer.elapsed().as_secs_f64() - app_state.display_start_time > 5.0 {
+                app_state.display_str = String::new();
             }
         });
     }
@@ -117,4 +117,3 @@ fn color_picker_widget(ui: &mut egui::Ui, color: &mut Color) -> egui::Response {
     );
     res
 }
-

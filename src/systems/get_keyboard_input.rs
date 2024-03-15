@@ -1,12 +1,12 @@
-use crate::{AppState, FFTArgs};
+use crate::{AppState, FFTArgs, FFTState};
 use bevy::render::mesh::VertexAttributeValues;
-use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy::sprite::Anchor;
 use bevy::{
     app::AppExit,
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
+use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use clap::{ArgAction, Parser};
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
@@ -17,10 +17,10 @@ use std::io::BufReader;
 use std::path::PathBuf;
 use std::time::Duration;
 
-
 pub fn get_keyboard_input(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut exit: EventWriter<AppExit>,
+    mut fft_state: ResMut<FFTState>,
     mut app_state: ResMut<AppState>,
     mut args: ResMut<FFTArgs>,
 ) {
@@ -31,7 +31,7 @@ pub fn get_keyboard_input(
         args.display_gui = !args.display_gui;
     }
     if keyboard_input.just_pressed(KeyCode::Space) {
-        args.paused = !args.paused;
+        app_state.paused = !app_state.paused;
         if app_state.sink.is_paused() {
             app_state.sink.play();
         } else {
