@@ -1,33 +1,14 @@
 use crate::fft::time_interpolate;
 use crate::*;
 use bevy::render::mesh::VertexAttributeValues;
-use bevy::sprite::Anchor;
-use bevy::{
-    app::AppExit,
-    prelude::*,
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
-};
-use bevy_egui::egui::{Align2, Color32, Stroke};
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
-use clap::{ArgAction, Parser};
-use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-use rodio::{source::Source, Decoder, OutputStream};
-use std::ffi::OsString;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::PathBuf;
-use std::time::Duration;
+use bevy::prelude::*;
 
 pub fn update_fft(
-    mut commands: Commands,
     mut window: Query<&mut Window>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut fft_state: ResMut<FFTState>,
-    mut app_state: ResMut<AppState>,
-    mut args: ResMut<FFTArgs>,
-    mut clear_color: ResMut<ClearColor>,
-    mut text_query: Query<&mut Text>,
+    fft_state: ResMut<FFTState>,
+    app_state: ResMut<AppState>,
+    args: ResMut<FFTArgs>,
 ) {
     let h = window.single_mut().height();
     let interval = app_state.rendering_fps / app_state.fft_fps;

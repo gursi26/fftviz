@@ -1,21 +1,9 @@
 use crate::{FFTArgs, FFTState};
-use bevy::render::mesh::VertexAttributeValues;
 use bevy::sprite::Anchor;
 use bevy::{
-    app::AppExit,
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
-use bevy_egui::egui::{Align2, Color32, Stroke};
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
-use clap::{ArgAction, Parser};
-use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-use rodio::{source::Source, Decoder, OutputStream};
-use std::ffi::OsString;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::PathBuf;
-use std::time::Duration;
 
 fn spawn_bars(
     num_bars: u32,
@@ -75,7 +63,6 @@ pub fn startup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut fft_queue: ResMut<FFTState>,
-    clear_color: Res<ClearColor>,
     args: Res<FFTArgs>,
 ) {
     commands.spawn(Camera2dBundle::default());

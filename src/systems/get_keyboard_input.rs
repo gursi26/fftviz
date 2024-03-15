@@ -1,26 +1,12 @@
-use crate::{AppState, FFTArgs, FFTState};
-use bevy::render::mesh::VertexAttributeValues;
-use bevy::sprite::Anchor;
+use crate::{AppState, FFTArgs};
 use bevy::{
     app::AppExit,
     prelude::*,
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
-use bevy_egui::egui::{Align2, Color32, Stroke};
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
-use clap::{ArgAction, Parser};
-use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
-use rodio::{source::Source, Decoder, OutputStream};
-use std::ffi::OsString;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::PathBuf;
-use std::time::Duration;
 
 pub fn get_keyboard_input(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut exit: EventWriter<AppExit>,
-    mut fft_state: ResMut<FFTState>,
     mut app_state: ResMut<AppState>,
     mut args: ResMut<FFTArgs>,
 ) {

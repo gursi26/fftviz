@@ -2,11 +2,11 @@ use bevy::prelude::Color;
 use dirs::home_dir;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
-use std::fs::{create_dir, create_dir_all, read_to_string, File, OpenOptions};
+use std::fs::{create_dir_all, read_to_string, File, OpenOptions};
 use std::io::BufWriter;
 use std::{
     fs::remove_file,
-    io::{stdout, Read, Write},
+    io::Write,
     path::PathBuf,
 };
 
@@ -136,9 +136,9 @@ pub fn write_fftargs_to_config(args: &FFTArgs) {
     overwrite_non_default_args!(&mut default_args.volume, args.volume);
 
     let cfg_path = config_path();
-    create_dir_all(cfg_path.as_path().parent().unwrap());
+    create_dir_all(cfg_path.as_path().parent().unwrap()).unwrap();
 
-    let mut config_file = OpenOptions::new()
+    let config_file = OpenOptions::new()
         .write(true)
         .create(true)
         .open(&cfg_path)
@@ -153,7 +153,7 @@ pub fn write_fftargs_to_config(args: &FFTArgs) {
 
     cfg_yaml.retain(|x| x.contains(":"));
 
-    remove_file(&cfg_path);
+    remove_file(&cfg_path).unwrap();
 
     let f = File::create(&cfg_path).expect("Unable to create file");
     let mut f = BufWriter::new(f);
@@ -161,13 +161,14 @@ pub fn write_fftargs_to_config(args: &FFTArgs) {
         .expect("Unable to write data");
 }
 
+#[allow(dead_code)]
 pub fn reset_config_file() {
     let default_user_config = ConfigFFTArgs::default();
 
     let cfg_path = config_path();
-    create_dir_all(cfg_path.as_path().parent().unwrap());
+    create_dir_all(cfg_path.as_path().parent().unwrap()).unwrap();
 
-    let mut config_file = OpenOptions::new()
+    let config_file = OpenOptions::new()
         .write(true)
         .create(true)
         .open(cfg_path)
