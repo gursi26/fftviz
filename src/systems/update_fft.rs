@@ -23,32 +23,32 @@ pub fn update_fft(
     mut window: Query<&mut Window>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut fft_state: ResMut<FFTState>,
     mut app_state: ResMut<AppState>,
     mut args: ResMut<FFTArgs>,
     mut clear_color: ResMut<ClearColor>,
     mut text_query: Query<&mut Text>,
 ) {
     let h = window.single_mut().height();
-    app_state.update_fft_counter = false;
-    let interval = RENDERING_FPS / args.fft_fps;
+    let interval = app_state.rendering_fps / app_state.fft_fps;
 
     // Get the current frame (either from fft or interpolation)
-    let curr_fft = match app_state.total_frame_counter as u32 % interval {
+    let curr_fft = match fft_state.total_frame_counter as u32 % interval {
         0 => {
-            if app_state.fft_frame_counter >= app_state.fft.len() - 1 {
+            if fft_state.fft_frame_counter >= fft_state.fft.len() - 1 {
                 std::process::exit(0);
             }
-            app_state.fft[app_state.fft_frame_counter].clone()
+            fft_state.fft[fft_state.fft_frame_counter].clone()
         }
         rem => time_interpolate(
-            &(app_state.fft[app_state.fft_frame_counter]),
-            &(app_state.fft[app_state.fft_frame_counter + 1]),
+            &(fft_state.fft[fft_state.fft_frame_counter]),
+            &(fft_state.fft[fft_state.fft_frame_counter + 1]),
             rem as f32 / interval as f32,
         ),
     };
 
     // Iterate through all currently displayed bars to change values
-    for (handle, new_value) in app_state.curr_bars.chunks(2).zip(curr_fft.iter()) {
+    for (handle, new_value) in fft_state.curr_bars.chunks(2).zip(curr_fft.iter()) {
         let (handle1, handle2) = (handle[0].0.clone_weak(), handle[1].0.clone_weak());
 
         let dims = meshes

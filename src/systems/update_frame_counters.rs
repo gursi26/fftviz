@@ -18,12 +18,8 @@ use std::io::BufReader;
 use std::path::PathBuf;
 use std::time::Duration;
 
-
-pub fn update_frame_counters(
-    mut app_state: ResMut<AppState>,
-    mut args: ResMut<FFTArgs>,
-) {
-    let elapsed_time = app_state.song_stopwatch.elapsed().as_secs_f64();
-    app_state.fft_frame_counter = (elapsed_time / TIME_BETWEEN_FFT_FRAMES) as usize;
-    app_state.total_frame_counter = (elapsed_time / TIME_BETWEEN_FRAMES) as usize;
+pub fn update_frame_counters(mut fft_state: ResMut<FFTState>, mut args: ResMut<FFTArgs>) {
+    let elapsed_time = fft_state.fft_timer.elapsed().as_secs_f64();
+    fft_state.fft_frame_counter = (elapsed_time / TIME_BETWEEN_FFT_FRAMES) as usize;
+    fft_state.total_frame_counter = (elapsed_time / TIME_BETWEEN_FRAMES) as usize;
 }

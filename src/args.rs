@@ -1,7 +1,7 @@
-use std::path::Path;
-use bevy::prelude::*;
 use crate::*;
+use bevy::prelude::*;
 use clap::{ArgAction, Parser};
+use std::path::Path;
 
 #[derive(Debug, Parser)]
 #[clap(author, version, about)]
@@ -101,8 +101,6 @@ pub fn cli_args_to_fft_args(mut cli_args: CLIArgs, use_default: bool) -> FFTArgs
         max_freq: cli_args.max_freq.unwrap(),
         display_gui: cli_args.display_gui.unwrap(),
         volume: cli_args.volume.unwrap(),
-        paused: false,
-        fft_fps: FFT_FPS
     }
 }
 
@@ -110,14 +108,14 @@ pub fn parse_cli_args() -> FFTArgs {
     cli_args_to_fft_args(args::CLIArgs::parse(), false)
 }
 // Value constraints
-pub fn bar_smoothness_constraint(v: u32) { 
+pub fn bar_smoothness_constraint(v: u32) {
     if v > 3 {
         println!("smoothness must be between 0 and 3 inclusive.");
         std::process::exit(1);
     }
 }
 
-fn freq_resolution_constraint(v: u32) { 
+fn freq_resolution_constraint(v: u32) {
     if v < 10 || v > 300 {
         println!("freq-resolution must be between 10 and 300 inclusive.");
         std::process::exit(1);

@@ -1,13 +1,13 @@
-use crate::*;
 use crate::fft::time_interpolate;
+use crate::*;
 use bevy::render::mesh::VertexAttributeValues;
-use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy::sprite::{Anchor, Material2d};
 use bevy::{
     app::AppExit,
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
+use bevy_egui::egui::{Align2, Color32, Stroke};
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use clap::{ArgAction, Parser};
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
@@ -18,13 +18,12 @@ use std::io::BufReader;
 use std::path::PathBuf;
 use std::time::Duration;
 
-
-pub fn update_view_settings (
+pub fn update_view_settings(
     mut commands: Commands,
     mut window: Query<&mut Window>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    mut app_state: ResMut<AppState>,
+    mut app_state: ResMut<FFTState>,
     mut args: ResMut<FFTArgs>,
     mut clear_color: ResMut<ClearColor>,
     mut text_query: Query<(&mut Transform, &mut Text)>,
@@ -33,7 +32,7 @@ pub fn update_view_settings (
 ) {
     let mut differencing_args = differencing_args_query.get_single_mut().unwrap();
 
-    // Update bar sizes and positions on resize 
+    // Update bar sizes and positions on resize
     let w = window.single_mut().width();
     if differencing_args.window_width != w {
         let h = window.single_mut().height();
@@ -43,8 +42,10 @@ pub fn update_view_settings (
 
         let bar_size = w / app_state.fft[0].len() as f32;
         for (i, b) in app_state.despawn_handles.chunks(2).enumerate() {
-            bar_query.get_mut(b[0]).unwrap().translation.x = bar_size * i as f32 + bar_size / 2.0 - w / 2.0;
-            bar_query.get_mut(b[1]).unwrap().translation.x = bar_size * i as f32 + bar_size / 2.0 - w / 2.0;
+            bar_query.get_mut(b[0]).unwrap().translation.x =
+                bar_size * i as f32 + bar_size / 2.0 - w / 2.0;
+            bar_query.get_mut(b[1]).unwrap().translation.x =
+                bar_size * i as f32 + bar_size / 2.0 - w / 2.0;
         }
 
         let outer_bar_size = bar_size / 2.0;
@@ -90,7 +91,10 @@ pub fn update_view_settings (
     }
 
     // Update text color + visibility + size
-    if differencing_args.text_color != args.text_color || differencing_args.track_name != args.track_name || differencing_args.font_size != args.font_size {
+    if differencing_args.text_color != args.text_color
+        || differencing_args.track_name != args.track_name
+        || differencing_args.font_size != args.font_size
+    {
         for mut text in &mut text_query {
             if args.track_name {
                 text.1.sections[0].style.color = args.text_color;
@@ -112,9 +116,12 @@ pub fn update_view_settings (
     }
 
     // Update bar colors
-    if differencing_args.bar_color != args.bar_color || differencing_args.border_color != args.border_color {
+    if differencing_args.bar_color != args.bar_color
+        || differencing_args.border_color != args.border_color
+    {
         for handle in app_state.curr_bars.chunks(2) {
-            let (color_handle1, color_handle2) = (handle[0].1.clone_weak(), handle[1].1.clone_weak());
+            let (color_handle1, color_handle2) =
+                (handle[0].1.clone_weak(), handle[1].1.clone_weak());
             materials.get_mut(color_handle1).unwrap().color = args.border_color;
             materials.get_mut(color_handle2).unwrap().color = args.bar_color;
         }
@@ -125,7 +132,8 @@ pub fn update_view_settings (
     // Update border size
     if differencing_args.border_size != args.border_size {
         let w = window.single_mut().width();
-        let bar_size = ((w as f32 / (app_state.curr_bars.len() / 2) as f32) - args.border_size as f32) / 2.0;
+        let bar_size =
+            ((w as f32 / (app_state.curr_bars.len() / 2) as f32) - args.border_size as f32) / 2.0;
 
         for handle in app_state.curr_bars.chunks(2) {
             let handle1 = handle[1].0.clone_weak();

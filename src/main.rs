@@ -8,7 +8,6 @@ mod systems;
 use args::*;
 use config::*;
 use fft::*;
-use stopwatch::Stopwatch;
 use systems::egui::*;
 use systems::get_keyboard_input::*;
 use systems::startup::*;
@@ -34,6 +33,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 use std::time::Duration;
+use std::time::Instant;
 
 // TODO: Add to other package managers
 // TODO: Remove fft_fps and other deprecated configs from readme
@@ -70,29 +70,33 @@ struct FFTArgs {
     max_freq: f32,
     display_gui: bool,
     volume: u32,
-    paused: bool,
-    fft_fps: u32,
 }
 
 #[derive(Resource)]
 struct AppState {
     sink: rodio::Sink,
+    display_str: String,
+    display_start_time: f64,
+    paused: bool,
+    fft_fps: u32,
+    rendering_fps: u32,
+}
+
+#[derive(Resource)]
+struct FFTState {
     fft: Vec<Vec<f32>>,
     curr_bars: Vec<(Handle<Mesh>, Handle<ColorMaterial>)>,
     despawn_handles: Vec<Entity>,
     total_frame_counter: usize,
     fft_frame_counter: usize,
-    song_stopwatch: Stopwatch,
-    update_fft_counter: bool,
-    display_str_stopwatch: Stopwatch,
-    display_str: String,
+    fft_timer: Instant,
 }
 
 fn compute_and_preprocess_fft(fp: &PathBuf, args: &FFTArgs) -> Vec<Vec<f32>> {
     println!("Computing FFT...");
     let mut fft = compute_fft(
         fp,
-        args.fft_fps,
+        FFT_FPS,
         args.freq_resolution,
         args.min_freq,
         args.max_freq,
@@ -175,19 +179,25 @@ fn main() {
     let sink = rodio::Sink::try_new(&stream_handle).unwrap();
     sink.set_volume(volume as f32 / 100.0);
     sink.append(source);
-    let song_stopwatch = Stopwatch::start_new();
+
+    // Start stopwatch that keeps fft in sync
+    let fft_timer = Instant::now();
 
     app.insert_resource(AppState {
         sink,
+        display_str: String::new(),
+        display_start_time: 0.0,
+        paused: false,
+        fft_fps: FFT_FPS,
+        rendering_fps: RENDERING_FPS,
+    })
+    .insert_resource(FFTState {
         fft: fft_vec,
         curr_bars: Vec::new(),
         despawn_handles: Vec::new(),
         fft_frame_counter: 0,
         total_frame_counter: 0,
-        song_stopwatch,
-        display_str_stopwatch: Stopwatch::new(),
-        display_str: String::new(),
-        update_fft_counter: false,
+        fft_timer,
     });
 
     app.run();
