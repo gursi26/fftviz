@@ -15,7 +15,6 @@ use systems::update_view_settings::*;
 
 use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
-use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 use rodio::{Decoder, OutputStream};
 use std::ffi::OsString;
 use std::fs::File;
@@ -117,7 +116,7 @@ fn compute_and_preprocess_fft(fp: &PathBuf, args: &FFTArgs) -> Vec<Vec<f32>> {
     }
 
     fft_vec
-        .par_iter_mut()
+        .iter_mut()
         .for_each(|x| space_interpolate(x, args.smoothness));
     if args.debug {
         println!("Interpolated in {:?}", now.elapsed());

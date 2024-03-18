@@ -1,5 +1,4 @@
 use bincode::{deserialize, serialize};
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rodio::{source::Source, Decoder, OutputStream};
 use serde::{Deserialize, Serialize};
 use spectrum_analyzer::scaling::divide_by_N_sqrt;
@@ -71,7 +70,7 @@ pub fn intensity_normalize_fft(mut fft: FFT, bounds: &[f32], scaling_factor: &[f
         }
         x
     };
-    fft.fft = fft.fft.into_par_iter().map(|x| rescale(x)).collect();
+    fft.fft = fft.fft.into_iter().map(|x| rescale(x)).collect();
     fft
 }
 
@@ -85,7 +84,7 @@ pub fn frequency_normalize_fft(mut fft: FFT, scaling_factor: &[f32]) -> FFT {
         }
         x
     };
-    fft.fft = fft.fft.into_par_iter().map(|x| rescale(x)).collect();
+    fft.fft = fft.fft.into_iter().map(|x| rescale(x)).collect();
     fft
 }
 
