@@ -3,7 +3,7 @@ A lightweight, customizable FFT visualizer for audio files. Built with Rust + Be
 
 ![Presentation1](https://github.com/gursi26/fftviz/assets/75204369/590f0021-1aa3-44a1-9396-c0daf4af4080)
 
-![demo](https://github.com/gursi26/fftviz/assets/75204369/9f78622f-705e-499f-a981-7aa110f0b2ca)
+https://github.com/gursi26/fftviz/assets/75204369/b53589f3-9871-416e-96df-c9de2591f835
 
 
 # Installation
