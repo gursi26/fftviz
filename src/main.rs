@@ -183,9 +183,11 @@ fn main() {
     let sink = rodio::Sink::try_new(&stream_handle).unwrap();
     sink.set_volume(volume as f32 / 100.0);
     sink.append(source);
+    sink.pause();
 
     // Start timer that keeps fft in sync
     let fft_timer = stopwatch::Stopwatch::start_new();
+    sink.play();
 
     app.insert_resource(AppState {
         sink,
